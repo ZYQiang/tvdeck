@@ -1,0 +1,154 @@
+{
+ "com.konka.message": {
+  "file": "com.konka.message.png",
+  "ext": "png",
+  "bytes": 12795,
+  "icon": "res/mipmap-hdpi-v4/ic_launcher.png",
+  "name": "ic_launcher",
+  "label": "消息中心"
+ },
+ "com.oversea.aslauncher": {
+  "file": "com.oversea.aslauncher.png",
+  "ext": "png",
+  "bytes": 41376,
+  "icon": "res/drawable-xxhdpi-v4/ic_launcher_new.png",
+  "name": "ic_launcher_new",
+  "label": "Emotn UI"
+ },
+ "org.smarttube.stable": {
+  "file": "org.smarttube.stable.png",
+  "ext": "png",
+  "bytes": 9285,
+  "icon": "res/c0.png",
+  "name": "c0",
+  "label": "SmartTube"
+ },
+ "com.konka.multimedia": {
+  "file": "com.konka.multimedia.png",
+  "ext": "png",
+  "bytes": 4334,
+  "icon": "res/drawable-hdpi-v4/ic_launcher.png",
+  "name": "ic_launcher",
+  "label": "File Manager"
+ },
+ "com.dangbeimarket": {
+  "file": "com.dangbeimarket.png",
+  "ext": "png",
+  "bytes": 26910,
+  "icon": "res/drawable-nodpi-v4/dangbei_icon.png",
+  "name": "dangbei_icon",
+  "label": "当贝市场"
+ },
+ "com.devolutions.remotedesktopmanager": {
+  "file": "com.devolutions.remotedesktopmanager.webp",
+  "ext": "webp",
+  "bytes": 9564,
+  "icon": "res/mipmap-xxxhdpi-v4/ic_launcher_rdm.webp",
+  "name": "ic_launcher_rdm",
+  "label": "Remote Desktop Manager"
+ },
+ "com.emotn.browser": {
+  "file": "com.emotn.browser.png",
+  "ext": "png",
+  "bytes": 72228,
+  "icon": "res/drawable-nodpi-v4/app_icon.png",
+  "name": "app_icon",
+  "label": "Emotn Browser"
+ },
+ "com.estrongs.android.pop": {
+  "file": "com.estrongs.android.pop.png",
+  "ext": "png",
+  "bytes": 8573,
+  "icon": "res/mipmap-xxhdpi/fex.png",
+  "name": "fex",
+  "label": "ES File Explorer"
+ },
+ "com.follow.clash": {
+  "file": "com.follow.clash.webp",
+  "ext": "webp",
+  "bytes": 886,
+  "icon": "res/d2.webp",
+  "name": "d2",
+  "label": "FlClash"
+ },
+ "com.fongmi.android.tv": {
+  "file": "com.fongmi.android.tv.png",
+  "ext": "png",
+  "bytes": 5026,
+  "icon": "res/9w.png",
+  "name": "9w",
+  "label": "TV"
+ },
+ "com.hush.yamby": {
+  "file": "com.hush.yamby.png",
+  "ext": "png",
+  "bytes": 25966,
+  "icon": "res/mipmap-xxhdpi-v4/ic_launcher.png",
+  "name": "ic_launcher",
+  "label": "Yamby"
+ },
+ "com.mcat.tv1": {
+  "file": "com.mcat.tv1.png",
+  "ext": "png",
+  "bytes": 2602,
+  "icon": "res/u3.png",
+  "name": "u3",
+  "label": "网飞猫"
+ },
+ "com.media.mix.app": {
+  "file": "com.media.mix.app.webp",
+  "ext": "webp",
+  "bytes": 726,
+  "icon": "res/d2.webp",
+  "name": "d2",
+  "label": "MediaMix"
+ },
+ "com.overseas.store.appstore": {
+  "file": "com.overseas.store.appstore.png",
+  "ext": "png",
+  "bytes": 70225,
+  "icon": "res/drawable-nodpi-v4/app_icon.png",
+  "name": "app_icon",
+  "label": "Emotn Store"
+ },
+ "com.wolf.lmu": {
+  "file": "com.wolf.lmu.png",
+  "ext": "png",
+  "bytes": 3524,
+  "icon": "res/mipmap-xxhdpi-v4/ic_launcher.png",
+  "name": "ic_launcher",
+  "label": "LM Ultimate"
+ },
+ "com.konka.tvsettings": {
+  "file": "com.konka.tvsettings.png",
+  "ext": "png",
+  "bytes": 17663,
+  "icon": "res/mipmap-hdpi-v4/ic_launcher.png",
+  "name": "ic_launcher",
+  "label": "设置"
+ },
+ "com.konka.applist": {
+  "file": "com.konka.applist.png",
+  "ext": "png",
+  "bytes": 6464,
+  "icon": "res/mipmap-xxhdpi-v4/ic_launcher.png",
+  "name": "ic_launcher",
+  "label": "AppList"
+ },
+ "com.konka.localserver": {
+  "file": "com.konka.localserver.png",
+  "ext": "png",
+  "bytes": 9724,
+  "icon": "res/drawable-xxhdpi-v4/ic_launcher.png",
+  "name": "ic_launcher",
+  "label": "LocalServer"
+ },
+ "com.konka.quickstandby": {
+  "file": "com.konka.quickstandby.png",
+  "ext": "png",
+  "bytes": 9355,
+  "icon": "res/drawable-xhdpi-v4/ic_launcher.png",
+  "name": "ic_launcher",
+  "label": "QuickStandby"
+ }
+}

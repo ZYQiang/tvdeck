@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <title>ADB 设备 · 纯画面</title>
+    <style>
+      /* 只放设备画面：给「想看大画面」一个没有控制台干扰的落点。
+         纯黑底 + contain，任何比例的设备画面都完整显示，不会被裁掉 */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #000;
+        overflow: hidden;
+      }
+
+      body {
+        font: 13px/1.5 -apple-system, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* 双缓冲：单张 img 换 src 的瞬间旧画面会被丢掉，
+         设备慢的时候就是「一闪一黑」，所以新帧先加载到隐藏层再翻上来 */
+      .shot {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #000;
+        opacity: 0;
+        transition: opacity 0.12s linear;
+        /* 画面当触摸板用：不关掉原生图片拖拽，拖动会变成浏览器拖图，pointerup 收不到 */
+        -webkit-user-drag: none;
+        user-drag: none;
+      }
+
+      .shot.on {
+        opacity: 1;
+      }
+
+      /* 还没画出第一帧之前不留纯黑：写清楚在等什么，取帧失败也一直挂在这里 */
+      #idle {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        gap: 6px;
+        justify-items: center;
+        padding: 0 28px;
+        text-align: center;
+        color: #82828c;
+        pointer-events: none;
+      }
+
+      body.ready #idle {
+        display: none;
+      }
+
+      #idle b {
+        font-size: 14px;
+        font-weight: 500;
+        color: #a2a2ad;
+      }
+
+      #bar {
+        position: fixed;
+        top: calc(12px + env(safe-area-inset-top));
+        right: 12px;
+        display: flex;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        /* 收起来时不只是看不见：整条都不许吃点击，否则右上角一片隐形按钮
+           会把点画面的动作抢走，甚至莫名进全屏 / 跳回控制台 */
+        pointer-events: none;
+        /* 光靠 opacity:0 不够：Chrome 在透明元素上的鼠标命中判定不可靠，
+           visibility 才让它彻底退出命中测试，也顺手退出焦点序列 */
+        visibility: hidden;
+      }
+
+      #hint {
+        position: fixed;
+        left: 50%;
+        bottom: calc(16px + env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        max-width: min(92vw, 560px);
+        margin: 0;
+        padding: 8px 14px;
+        border-radius: 14px;
+        background: rgba(9, 9, 11, 0.78);
+        border: 1px solid #2a2a33;
+        color: #a2a2ad;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        pointer-events: none;
+      }
+
+      #bar.on,
+      #hint.on {
+        opacity: 1;
+      }
+
+      #bar.on {
+        pointer-events: auto;
+        visibility: visible;
+      }
+
+      /* 角落抓手：鼠标一经过就展开按钮条。
+         常驻一个低对比的小方块，不需要把鼠标满屏晃来找按钮，
+         也不用像以前那样一动鼠标就把按钮条和提示弹出来挡住画面 */
+      #grip {
+        position: fixed;
+        top: calc(12px + env(safe-area-inset-top));
+        right: 12px;
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        /* 抓手常常正好压在设备自己的状态栏上（同样是深色小图标），
+           对比要够，否则等于没有 */
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        background: rgba(9, 9, 11, 0.68) radial-gradient(circle, rgba(242, 242, 250, 0.95) 1.3px, transparent 1.7px) center / 9px 9px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+        opacity: 0.76;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
+        cursor: pointer;
+      }
+
+      #grip:hover {
+        opacity: 1;
+      }
+
+      /* 按钮条展开时抓手退场，两者不重叠 */
+      #bar.on + #grip {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      body:fullscreen #grip,
+      body:-webkit-full-screen #grip {
+        top: calc(18px + env(safe-area-inset-top));
+        right: 18px;
+      }
+
+
+      #bar button,
+      #bar a {
+        min-height: 40px;
+        padding: 0 14px;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 10px;
+        background: rgba(9, 9, 11, 0.78);
+        border: 1px solid #2a2a33;
+        color: #f2f2f4;
+        font: inherit;
+        text-decoration: none;
+      }
+
+      body:fullscreen #bar,
+      body:-webkit-full-screen #bar {
+        top: calc(18px + env(safe-area-inset-top));
+        right: 18px;
+      }
+
+      /* 全屏看画面时点一下要有回执，不然像点空了 */
+      .ripple.blocked {
+        border-color: rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .ripple {
+        position: fixed;
+        width: 16px;
+        height: 16px;
+        margin: -8px 0 0 -8px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.28);
+        pointer-events: none;
+        animation: ripple 560ms ease-out forwards;
+      }
+
+      @keyframes ripple {
+        from {
+          opacity: 0.9;
+          transform: scale(0.6);
+        }
+        to {
+          opacity: 0;
+          transform: scale(3.2);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .ripple {
+          animation-duration: 220ms;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <img id="shot" class="shot on" alt="当前设备屏幕" draggable="false" />
+    <img id="shotB" class="shot" alt="" aria-hidden="true" draggable="false" />
+    <div id="idle">
+      <b id="idletext">正在连接设备画面…</b>
+      <span id="idlesub">设备离线时这里会一直重试，连上就会自动出画面</span>
+    </div>
+    <div id="bar">
+      <button id="btn-tap" type="button">🖱</button>
+      <button id="btn-fs" type="button">全屏</button>
+      <a href="/" title="回到 ADB 设备控制台">返回控制台</a>
+    </div>
+    <div id="grip" role="button" tabindex="0" title="把鼠标移到右上角，或点这里展开按钮"></div>
+    <p id="hint">设备画面 · 鼠标移到右上角唤出按钮</p>
+
+    <script>
+      const shots = [document.getElementById('shot'), document.getElementById('shotB')];
+      let front = 0;
+      const bar = document.getElementById('bar');
+      const hint = document.getElementById('hint');
+      const btnFs = document.getElementById('btn-fs');
+      const idleText = document.getElementById('idletext');
+      const idlesub = document.getElementById('idlesub');
+      const btnTap = document.getElementById('btn-tap');
+      const DEFAULT_HINT = '鼠标点画面 = 直接点按设备，按住拖 = 滑动 · 按钮在右上角';
+      const FS_FALLBACK = '这个浏览器不提供网页全屏，可用浏览器自带全屏（多数平台按 F11）';
+      let timer = 0;
+      let firstFrame = true;
+
+      /// 服务器基地址：和 app.js 同一套规则（?server= 优先，其次 localStorage，最后同源）。
+      /// 纯画面页可能是被客户端以本地文件打开、也可能由服务端直接提供，两种都要能用。
+      const SRV_KEY = 'tvdeck.server';
+      const SRV = (() => {
+        try {
+          const q = new URLSearchParams(location.search).get('server');
+          if (q !== null) {
+            const v = q.trim().replace(/\/+$/, '');
+            if (v) localStorage.setItem(SRV_KEY, v);
+            else localStorage.removeItem(SRV_KEY);
+            return v;
+          }
+          return (localStorage.getItem(SRV_KEY) || '').trim().replace(/\/+$/, '');
+        } catch {
+          return '';
+        }
+      })();
+      const srv = (p) => SRV + p;
+
+      /// sticky=true 的提示（取帧失败、全屏没生效）不自动收回，免得一闪一闪看不清
+      function peek(text, sticky) {
+        if (text) hint.textContent = text;
+        bar.classList.add('on');
+        hint.classList.add('on');
+        clearTimeout(timer);
+        if (sticky) return;
+        timer = setTimeout(() => {
+          bar.classList.remove('on');
+          hint.classList.remove('on');
+        }, 3200);
+      }
+
+      /// 一帧真的落地之后再排下一张：设备慢的时候不会攒出一串互相打断的截屏请求
+      function schedule(ms) {
+        clearTimeout(timer);
+        timer = setTimeout(load, ms);
+      }
+
+      function load() {
+        shots[1 - front].src = srv('/device.jpg?t=' + Date.now());
+        schedule(9000);
+      }
+
+      /// 新帧加载完才翻页：旧画面一直留着，中间不会空
+      function onFrame(i) {
+        if (i === front) return;
+        shots[front].classList.remove('on');
+        shots[i].classList.add('on');
+        front = i;
+      }
+
+      shots.forEach((img, i) => {
+        img.addEventListener('load', () => {
+          onFrame(i);
+          document.body.classList.add('ready');
+          if (firstFrame) {
+            firstFrame = false;
+            /// 第一帧到齐只提示一次，之后别再重置自动收回的计时器（否则控制条永远不隐藏）
+            peek(DEFAULT_HINT);
+          }
+          schedule(700);
+        });
+
+        img.addEventListener('error', () => {
+          /// 已经有画面就别动它，留着上一帧比整块黑掉强
+          if (document.body.classList.contains('ready')) {
+            schedule(1400);
+            return;
+          }
+          idleText.textContent = '取帧失败，正在重试…';
+          idlesub.textContent = '设备离线、或者没连上 adb 时会一直停在这里';
+          if (firstFrame) {
+            firstFrame = false;
+            peek('取帧失败：设备可能离线或没连上，仍在重试', true);
+          }
+          schedule(1400);
+        });
+      });
+
+      const grip = document.getElementById('grip');
+      /// 只在右上角那一小块里唤出按钮：鼠标为了点画面而到处移动时，
+      /// 按钮条不该跟着弹出来抢走点击
+      const inCorner = (x, y) => x > innerWidth - 96 && y < 72;
+      addEventListener('mousemove', (e) => {
+        if (inCorner(e.clientX, e.clientY)) peek();
+      });
+      /// 触屏没有悬停：点画面就唤出（手指点画面本来就不直通，不会冲突）
+      addEventListener('touchstart', () => peek(), { passive: true });
+      grip.addEventListener('pointerdown', (e) => e.stopPropagation());
+      grip.onclick = () => peek();
+      grip.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          peek();
+        }
+      };
+
+      const nativeFs = () => document.fullscreenElement || document.webkitFullscreenElement;
+
+      /// 有 requestFullscreen 不等于能全屏：内置浏览器里它可能什么都不做，
+      /// 所以请求之后核实一下 fullscreenElement，没进去就把退路写清楚
+      function probeFs() {
+        let tries = 0;
+        const t = setInterval(() => {
+          if (nativeFs()) {
+            clearInterval(t);
+            return;
+          }
+          tries += 1;
+          if (tries >= 3) {
+            clearInterval(t);
+            peek('浏览器没有真的进入全屏，' + FS_FALLBACK.slice(FS_FALLBACK.indexOf('可用')), true);
+          }
+        }, 300);
+      }
+
+      btnFs.onclick = () => {
+        if (nativeFs()) {
+          (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+          return;
+        }
+        const el = document.documentElement;
+        const req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (!req) {
+          peek(FS_FALLBACK, true);
+          return;
+        }
+        Promise.resolve(req.call(el))
+          .then(probeFs)
+          .catch(() => peek('全屏被浏览器拒绝，' + FS_FALLBACK.slice(FS_FALLBACK.indexOf('可用')), true));
+      };
+
+      /// 点按直通：和控制台共用一套换算规则。
+      /// 只认画面自己那块框（body 是纯黑留边），落在留边上不算操作
+      const shot = () => shots[front];
+
+      function toDevicePoint(clientX, clientY) {
+        const img = shot();
+        const nx = img.naturalWidth;
+        const ny = img.naturalHeight;
+        if (!nx || !ny) return null;
+        const box = img.getBoundingClientRect();
+        const s = Math.min(box.width / nx, box.height / ny);
+        const left = box.left + (box.width - nx * s) / 2;
+        const top = box.top + (box.height - ny * s) / 2;
+        const x = (clientX - left) / s;
+        const y = (clientY - top) / s;
+        /// 比例不同必然有留边，点在黑边上设备不该动
+        if (x < 0 || y < 0 || x > nx || y > ny) return null;
+        return { x: Math.round(x), y: Math.round(y) };
+      }
+
+      function rippleAt(clientX, clientY, kind) {
+        const d = document.createElement('span');
+        d.className = kind ? 'ripple ' + kind : 'ripple';
+        d.style.left = clientX + 'px';
+        d.style.top = clientY + 'px';
+        document.body.append(d);
+        setTimeout(() => d.remove(), 560);
+      }
+
+      async function post(path, body) {
+        const res = await fetch(srv(path), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.error) throw new Error(data.error || data.detail || 'HTTP ' + res.status);
+        return data;
+      }
+
+      /// 触屏不抢手势：手指拖动留给浏览器自己用，只有鼠标和笔走直通
+      let tapMode = (() => {
+        try {
+          return localStorage.getItem('tvdeck.tap') !== '0';
+        } catch {
+          return true;
+        }
+      })();
+      let busy = false;
+      let start = null;
+
+      function paintTap() {
+        btnTap.textContent = tapMode ? '🖱' : '🚫';
+        btnTap.title = tapMode ? '鼠标点画面直接点按设备，点击改为只读' : '只读：鼠标点击不传到设备，点击开启';
+      }
+
+      btnTap.onclick = () => {
+        tapMode = !tapMode;
+        try {
+          localStorage.setItem('tvdeck.tap', tapMode ? '1' : '0');
+        } catch {
+          /* 隐私模式下写不了，这次会话内记住就行 */
+        }
+        paintTap();
+        peek(tapMode ? '鼠标点画面 = 直接点按设备' : '已改为只读，鼠标点击不再传到设备', true);
+      };
+
+      /// 压在画面上的按钮/抓手自己要吃点击，不能当成点按设备
+      const inChrome = (t) => t instanceof Element && !!t.closest('#bar, #grip');
+
+      /// 一次按下→抬手：点按 / 滑动 / 被拦下（黑边、只读）都要有回执，
+      /// 不然用户只会觉得「鼠标在这页上没用」
+      async function pressEnd(x, y) {
+        const s0 = start;
+        start = null;
+        if (!s0) return;
+        const dist = Math.hypot(x - s0.x, y - s0.y);
+        const dt = performance.now() - s0.t;
+        /// 原地按住不动不算操作，别把长按误发成 x1==x2 的滑动
+        if (dist < 10 && dt >= 700) return;
+        const a = toDevicePoint(s0.x, s0.y);
+        const b = toDevicePoint(x, y);
+        if (dist < 10 && !a) {
+          rippleAt(x, y, 'blocked');
+          peek('这里在画面外的黑边上，只有画面里的图像能点按', true);
+          return;
+        }
+        if (dist >= 10 && (!a || !b)) {
+          rippleAt(x, y, 'blocked');
+          peek('滑动的起点和终点都要落在画面里', true);
+          return;
+        }
+        if (busy) return;
+        busy = true;
+        rippleAt(x, y);
+        try {
+          if (dist < 10) await post('/api/tap', { x: a.x, y: a.y });
+          else await post('/api/swipe', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, ms: Math.min(2000, Math.max(60, Math.round(dt))) });
+        } catch (err) {
+          peek('操作没发出去：' + err.message, true);
+        } finally {
+          busy = false;
+        }
+      }
+
+      /// 兜底：个别 webview 不认 user-drag 样式，原生拖图会让抬手事件永远不来
+      addEventListener('dragstart', (e) => e.preventDefault());
+
+      /// 分流：有 PointerEvent 走 pointer，老设备浏览器没有 PointerEvent 就退回鼠标事件，
+      /// 否则那类设备上也是「按钮点得动、画面点不动」
+      if (window.PointerEvent) {
+        addEventListener('pointerdown', (e) => {
+          peek();
+          if (!tapMode || e.pointerType === 'touch' || e.button !== 0 || inChrome(e.target)) {
+            start = null;
+            return;
+          }
+          start = { x: e.clientX, y: e.clientY, t: performance.now() };
+        });
+        /// 指针被系统抢走时清掉起点，免得下一次抬手被当成一次滑动
+        addEventListener('pointercancel', () => {
+          start = null;
+        });
+        addEventListener('pointerup', (e) => {
+          if (e.pointerType === 'touch') {
+            start = null;
+            return;
+          }
+          void pressEnd(e.clientX, e.clientY);
+        });
+      } else {
+        addEventListener('mousedown', (e) => {
+          peek();
+          if (!tapMode || e.button !== 0 || inChrome(e.target)) {
+            start = null;
+            return;
+          }
+          start = { x: e.clientX, y: e.clientY, t: performance.now() };
+        });
+        addEventListener('mouseup', (e) => void pressEnd(e.clientX, e.clientY));
+        /// 没有 PointerEvent 的触屏：手指不抢直通，只留页面滚动
+        addEventListener('touchstart', () => {
+          start = null;
+        }, { passive: true });
+      }
+
+      const paintBtn = () => {
+        btnFs.textContent = nativeFs() ? '退出全屏' : '全屏';
+      };
+      document.addEventListener('fullscreenchange', paintBtn);
+      document.addEventListener('webkitfullscreenchange', paintBtn);
+
+      paintBtn();
+      paintTap();
+      load();
+      peek();
+    </script>
+  </body>
+</html>

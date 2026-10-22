@@ -1,0 +1,11 @@
+# Runtime data and local artifacts
+.tvdeck/
+outputs/
+work/
+re/
+.taste-skill/
+*.bak*
+node_modules/
+.DS_Store
+*.log
+*.pid

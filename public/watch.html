@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>服务端画面</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #000;
+        overflow: hidden;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        display: block;
+      }
+      /* 连不上时不要留一块纯黑让人干等：写清楚在做什么、卡在哪一步 */
+      #note {
+        position: fixed;
+        inset: auto 0 0;
+        padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
+        color: #e8e8ee;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
+        font: 13px/1.6 -apple-system, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+        text-align: center;
+        transition: opacity 0.4s;
+      }
+      #note:empty {
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <img id="v" alt="服务端画面" />
+    <p id="note">正在连接服务端画面…</p>
+    <script>
+      /// 设备端浏览器差别很大：有的能吃 multipart MJPEG，有的（如 Android WebViewShell）
+      /// 根本不支持，直接把流当坏文件。所以先试流，失败就退回轮询单帧 JPEG，
+      /// 两条路都走不通才提示。目标设备不需要装任何东西。
+      const img = document.getElementById('v');
+      const note = document.getElementById('note');
+      const stream = '/mirror.mjpg';
+      const poll = '/mirror.jpg';
+
+      const say = (t) => {
+        note.textContent = t || '';
+      };
+
+      let mode = 'stream';
+      let streamTimer = 0;
+      let pollTimer = 0;
+      let lastOk = 0;
+      let pollTries = 0;
+
+      function startPoll() {
+        mode = 'poll';
+        pollTries = 0;
+        clearTimeout(streamTimer);
+        clearTimeout(pollTimer);
+        say('已切换到兼容模式');
+        const step = () => {
+          img.src = poll + '?t=' + Date.now();
+          /// 单帧正常就快一点，连着失败就放慢，别把服务端的抓屏占满
+          pollTimer = setTimeout(step, pollTries > 2 ? 1200 : 350);
+        };
+        step();
+      }
+
+      img.addEventListener('load', () => {
+        lastOk = Date.now();
+        /// 从兼容模式活着的时候，隔一阵试回直播流：网络恢复后应该自动回到更省的路子
+        if (mode === 'poll') {
+          pollTries = 0;
+          if (!streamTimer) {
+            streamTimer = setTimeout(() => {
+              streamTimer = 0;
+              if (mode !== 'poll') return;
+              const probe = new Image();
+              probe.onload = () => {
+                if (mode !== 'poll') return;
+                mode = 'stream';
+                clearTimeout(pollTimer);
+                say('');
+                img.src = stream + '?t=' + Date.now();
+                watchStream();
+              };
+              probe.src = stream + '?t=' + Date.now();
+            }, 30000);
+          }
+        }
+        say('');
+      });
+
+      img.addEventListener('error', () => {
+        pollTries++;
+        /// 流模式下一张都拿不到就换单帧；单帧模式连续失败才报错
+        if (mode === 'stream') {
+          startPoll();
+          return;
+        }
+        if (Date.now() - lastOk > 8000) say('还没有画面：确认这台设备与服务端在同一网络');
+      });
+
+      /// 流如果建立了却长时间没有新帧，也当作不支持，退回轮询
+      function watchStream() {
+        streamTimer = setTimeout(() => {
+          if (mode !== 'stream') return;
+          if (!lastOk || Date.now() - lastOk > 5000) startPoll();
+          else watchStream();
+        }, 5000);
+      }
+
+      /// 用 <img> 猜测流是否真的在推进：能 load 出第一帧说明流可用
+      img.src = stream + '?t=' + Date.now();
+      watchStream();
+
+      /// 切到后台就停掉轮询，别让设备白耗电
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          clearTimeout(streamTimer);
+          clearTimeout(pollTimer);
+        } else if (mode === 'poll') {
+          startPoll();
+        }
+      });
+    </script>
+  </body>
+</html>

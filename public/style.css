@@ -1,0 +1,7788 @@
+:root {
+  /* 夜晚主题（默认）。白天主题是同一组 token 的另一套取值，见下面 [data-theme='light'] */
+  color-scheme: dark;
+  --bg: #08080a;
+  --panel: #0e0e11;
+  --card: #16161a;
+  --card-2: #1e1e24;
+  --line: #26262e;
+  --ink: #f2f2f4;
+  --ink-2: #a2a2ad;
+  /* 原来 #6d6d78 在面板上只有 3.8:1，正文小字不达标；提到 4.6:1 以上 */
+  --ink-3: #8a8a95;
+  /* accent 分三种用法，混用会让其中一种不达标：
+     --accent      描边、指示点、滑杆填充（图形，3:1 即可）
+     --accent-ink  accent 当文字色用（#e8323c 在卡片上只有 4.26，提亮到 4.9+）
+     --accent-fill 实心按钮底（白字压在上面，#e8323c 只有 4.24，压深到 5.2） */
+  --accent: #e8323c;
+  --accent-ink: #ff6b62;
+  --accent-fill: #cf2a34;
+  --on-accent: #ffffff;
+  --accent-soft: rgba(232, 50, 60, 0.13);
+  --accent-press: #cf2a34;
+  /* 悬停/按下的加深色，各主题各一套，别再写死 #26262e 这种 */
+  --hover: #26262e;
+  --press: #2a2a33;
+  --toast: #1b1b21;
+  --err: #ff6b62;
+  --warn: #e0a94a;
+  /* 负载条专用的「正常」档：红是强调色，不能拿来当「一切正常」的语义色 */
+  --ok: #46b97a;
+  --scrim: rgba(4, 4, 6, 0.72);
+  --sb-thumb: rgba(255, 255, 255, 0.18);
+  --sb-thumb-hover: rgba(255, 255, 255, 0.32);
+  --r-panel: 26px;
+  --r-card: 18px;
+  --r-ctl: 12px;
+  --shadow: 0 30px 60px -35px rgba(0, 0, 0, 0.9);
+  /* 动效语言：一套时长加一条曲线。按钮按下、抽屉拉升、切页换场都用它们，
+     免得每个组件各写一个 0.1s / 0.14s / 0.18s，动起来像几个人各做各的 */
+  --dur-1: 140ms;
+  --dur-2: 200ms;
+  --dur-3: 340ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* 品牌级入场锚点：字标重量随元音节律微降，避免每次进场都是同一个静态首屏 */
+  --entry-rise: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 磁贴结构线单独抬一档：抽屉两列网格靠这圈线撑形状 */
+:root {
+  --mtile-line: #30303a;
+}
+
+/* 白天主题：白底、浅灰分层，红色仍是主色，但压深一档保证小字对比度过 4.5:1 */
+:root[data-theme='light'] {
+  --mtile-line: var(--line);
+
+  color-scheme: light;
+  --bg: #eef0f4;
+  --panel: #ffffff;
+  --card: #f6f7f9;
+  --card-2: #eceef2;
+  --line: #dfe2e8;
+  --ink: #14151a;
+  --ink-2: #5a5d68;
+  --ink-3: #636876;
+  /* 红在白底上要比夜配色压深一档：accent 落在 accent-soft 上的对比度才能过 4.5:1 */
+  --accent: #c4161f;
+  --accent-ink: #c4161f;
+  --accent-fill: #c4161f;
+  --on-accent: #ffffff;
+  --accent-soft: rgba(196, 22, 31, 0.1);
+  --accent-press: #a51119;
+  --hover: #e6e9ef;
+  --press: #dfe3ea;
+  --toast: #ffffff;
+  --err: #c0201a;
+  --warn: #8a5f00;
+  /* 和夜晚同一语义：白底上往深里压一档，拇指条/小字才够对比度 */
+  --ok: #1b6c3d;
+  --scrim: rgba(20, 22, 30, 0.4);
+  --sb-thumb: rgba(20, 22, 30, 0.24);
+  --sb-thumb-hover: rgba(20, 22, 30, 0.38);
+  --shadow: 0 18px 34px -30px rgba(20, 24, 36, 0.18);
+}
+
+/* 滚动条：默认那条灰底方块压在面板上很跳，统一换成「只有拇指、没有轨道」的细条。
+   Chromium 系还需要 ::-webkit-scrollbar 才能盖掉自带粗条；Safari overlay 走标准属性，不受影响。 */
+:root {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-thumb) transparent;
+}
+
+/* scrollbar-width / scrollbar-color 不继承：真正的滚动容器是 main 和各列表，
+   只写在 :root 上到不了它们，滚动条会退回浏览器默认的粗灰条。
+   这里按滚动容器逐个落一遍，让桌面主区、长列表、抽屉、图片面板的滚动条都统一成细条。
+   .tabs / .seg / #usage-hbars 下面各自又覆盖成 none / thin，不影响这里。 */
+main,
+.list.tall,
+.grid.tall,
+.sheet-body,
+.pic,
+html,
+body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-thumb) transparent;
+}
+
+main::-webkit-scrollbar,
+.list.tall::-webkit-scrollbar,
+.grid.tall::-webkit-scrollbar,
+.sheet-body::-webkit-scrollbar,
+.pic::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+main::-webkit-scrollbar-thumb,
+.list.tall::-webkit-scrollbar-thumb,
+.grid.tall::-webkit-scrollbar-thumb,
+.sheet-body::-webkit-scrollbar-thumb,
+.pic::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb);
+  border-radius: 999px;
+}
+
+main::-webkit-scrollbar-thumb:hover,
+.list.tall::-webkit-scrollbar-thumb:hover,
+.grid.tall::-webkit-scrollbar-thumb:hover,
+.sheet-body::-webkit-scrollbar-thumb:hover,
+.pic::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: var(--sb-thumb-hover);
+}
+
+main::-webkit-scrollbar-track,
+.list.tall::-webkit-scrollbar-track,
+.grid.tall::-webkit-scrollbar-track,
+.sheet-body::-webkit-scrollbar-track,
+.pic::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* input[type=file] 的 UA 规则比 [hidden] 权重高，不加这条的话选文件的裸输入框会自己露出来 */
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  background: var(--bg);
+}
+
+/* 手机上从页面顶部往下拉会触发浏览器自带的「下拉刷新」，把整个面板拽走；
+   面板自己管滚动，页面级直接关掉橡皮筋。内层列表另有 contain，不互相影响 */
+html,
+body {
+  overscroll-behavior-y: none;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  /* 排版主字重从系统默认栈里拆出来：标题用 New York 语义栈，正文继续系统 UI。
+     两侧用不同的字形骨架，标题的「编辑感」不靠加大字号硬撑 */
+  font: 15px/1.5 -apple-system, "SF Pro Text", "PingFang SC", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  justify-content: center;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 仅用于标题/字标的衬线栈：Android 设备上缺字体时逐级回落，
+   最差也是系统衬线而不是退回 UI 无衬线，保证层级对比始终存在 */
+:root {
+  --font-display: ui-serif, "New York", "Songti SC", "Noto Serif CJK SC", serif;
+}
+
+/* 首屏品牌锚点：状态字标从 8px 轻落 + 字重从 700 收到 620，
+   一次 340ms 的入场而不是默认瞬间渲染；面板本体不加动画，避免整页晃 */
+.p-name strong {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  animation: brand-in var(--dur-3) var(--entry-rise) both;
+}
+
+/* 字标圆点只做轻微下落，不换字体，避免和设备名抢层级 */
+.p-mark {
+  animation: mark-in var(--dur-3) var(--entry-rise) both;
+}
+
+@keyframes brand-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    font-weight: 700;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    font-weight: 620;
+  }
+}
+
+@keyframes mark-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* 触屏上长按控件会弹出文字选择手柄/放大镜，交互元素一律不可选中（输入框保持可选中） */
+button,
+summary,
+label,
+input[type='range'] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+button {
+  touch-action: manipulation;
+  cursor: pointer;
+  border: 0;
+  background: none;
+  transition: background var(--dur-1) ease, color var(--dur-1) ease, transform 0.1s var(--ease-out);
+}
+
+/* 键盘焦点：默认轮廓在深色底上几乎看不见，换成 accent 描边 */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+select:focus-visible {
+  outline-offset: 0;
+}
+
+.panel {
+  width: 100%;
+  max-width: 420px;
+  background: var(--panel);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  /* 设备详情下拉的定位锚点：p-top 在部分断点是 display:contents，
+     absolute 会退回视口定位跑到面板外，所以锚定在 .panel 上 */
+  position: relative;
+}
+
+.p-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  /* 这一条在窄屏是钉住的：320×568 上 18/14 的上下留白让钉住的部分占掉 1/4 屏，
+     压到 13/9 之后高度从 77 降到 68，头部信息一行没少，是纯赚回来的一屏内容。
+     44px 的图标按钮和 34px 的角标都没动，触控面积不变 */
+  padding: 13px 18px 9px;
+}
+
+/* 窄屏只固定 header：tab 行滚走能多留一屏内容高度，手机上一屏很值钱 */
+.p-head {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+}
+
+/* 顶部栏外层：窄屏用 contents 让 header 直接留在 .panel 的滚动流里，
+   否则 sticky 会被这个只有一百多像素高的父盒子框住，滚两下就跟着走了。
+   宽屏才把它变成真正的容器，好让 header + tab 整条一起钉住 */
+.p-top {
+  display: contents;
+}
+
+.p-id {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.p-mark {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  color: var(--accent-ink);
+  font-size: 15px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  letter-spacing: -0.02em;
+}
+
+.p-name {
+  min-width: 0;
+}
+
+.p-title {
+  display: block;
+  min-height: 28px;
+  padding: 0 4px;
+  margin-left: -4px;
+  border-radius: 8px;
+  transition: background var(--dur-1) var(--ease-out);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: text;
+}
+
+.p-title:hover {
+  background: color-mix(in srgb, var(--ink-3) 10%, transparent);
+}
+
+.p-title::after {
+  content: '改';
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin-left: 4px;
+  border: 1px solid color-mix(in srgb, var(--ink-3) 32%, transparent);
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 15px;
+  text-align: center;
+  vertical-align: 2px;
+  color: var(--ink-3);
+  background: var(--card-2);
+}
+
+.p-title:focus {
+  outline: 0;
+  background: var(--card);
+  text-overflow: clip;
+}
+
+.p-sub {
+  margin: 1px 0 0;
+  font-size: 12px;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 机型名先让位：窄屏空间不够时截断「Google · Android 14」，
+   但「N 秒前」必须完整留下，否则用户看不出数据是不是新的 */
+#model {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 设备状态行的「刚刚读取 / N 秒前」：和机型一行放，字色更弱，不抢连接状态 */
+.p-sub .p-updated {
+  flex: none;
+  color: var(--ink-3);
+  opacity: 0.86;
+  font-variant-numeric: tabular-nums;
+  padding-left: 3px;
+}
+
+.p-sub .p-updated.warn {
+  color: var(--warn);
+  opacity: 1;
+}
+
+.p-acts {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: none;
+  /* 三颗图标按钮原来各自悬在标题右边，间距 6px，像三个不相干的点。
+     收进一个圆角浅底里当成一组：视觉上是一条「操作组」，
+     三颗按钮仍然各自 44px，手指点哪都不挤 */
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--ink-2);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  display: grid;
+  place-items: center;
+}
+
+@media (hover: hover) {
+  .icon-btn:hover {
+    background: var(--card);
+    color: var(--ink);
+  }
+}
+
+.icon-btn:active {
+  transform: scale(0.94);
+}
+
+.icon-btn.on {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+/* 设备离线时 ⏻ 表示「点我唤醒」，用描边区分，不用小圆点标状态 */
+.icon-btn.power.off {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+  color: var(--accent-ink);
+}
+
+.power {
+  color: var(--accent-ink);
+  font-size: 17px;
+}
+
+.power.armed {
+  background: var(--accent-soft);
+}
+
+/* 顶部电源键只有图标：第一次点击后必须有一句话说明还要再点一次，
+   只靠变色用户会以为没点上。气泡绝对定位，不参与顶栏排版、不挤按钮 */
+.p-acts {
+  position: relative;
+}
+
+.power-arm-hint {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 2px;
+  z-index: 40;
+  padding: 7px 11px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.18);
+  pointer-events: none;
+}
+
+.power-arm-hint::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  right: 17px;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  transform: rotate(45deg);
+}
+
+/* 需要第二次点击的危险动作：描边 + 变色，一眼看出"还没执行" */
+button.armed {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+/* 这一条任何宽度都只放 4 格：3 个天天点的（总览 / 控制 / 应用）+ 「更多」。
+   面板长到 10 个以后，10 格摊在 390px 上每格只剩 36px、要横向滚动才找得到；
+   摊在 760px 的面板上虽然放得下，也还是十格一排的菜单墙，主次全没了。
+   所以屏幕再宽，上排始终是这 4 格，其余面板按用途收进抽屉（见下面的 .mtile），
+   以后加面板也不会把上排撑爆。4 格在 320px 的窄屏上每格约 70px，
+   大字、图标都不挤 */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(52px, 1fr));
+  gap: 0;
+  margin: 0 12px;
+  padding: 4px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  /* 极端窄屏（<300px）仍然整条可滚，兜住比挤压好 */
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* 375/390 这类常见窄屏上，两侧留白 18px 会把 6 个格子挤到 60px 以下，
+   收到 6px 之后一行铺满，不用滑 */
+@media (max-width: 400px) {
+  .tabs {
+    margin: 0 6px;
+  }
+}
+
+.tab {
+  height: 48px;
+  min-width: 44px;
+  scroll-snap-align: center;
+  border-radius: 11px;
+  color: var(--ink-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.tab svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+/* 纯图标认不出「设备 / 画面 / 连接」的区别，图标下补一行小字 */
+.tab-lb {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+/* 「更多」那格的省略号是三个实心点，不是描边圆环 */
+.tab svg.dots circle {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* 这一格正装着一个收起来的面板时，名字后面挂个小三角：
+   点它开的是抽屉，不是直接切页，留个记号免得点错 */
+.tab-caret {
+  font-size: 8px;
+  margin-left: 2px;
+  opacity: 0.75;
+}
+
+@media (hover: hover) {
+  .tab:hover {
+    color: var(--ink-2);
+  }
+}
+
+.tab:active {
+  transform: scale(0.96);
+}
+
+.tab.on {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+/* 收进抽屉的七个面板：上排永远不占位，入口只有第 4 格的「更多」。
+   选择器带 .tabs 是为了压过上面 .tab 的 display: flex —— 同权重靠先后顺序太脆 */
+.tabs .tab.sec {
+  display: none;
+}
+
+/* 桌面端格子宽到 120px：图标与文字并排，比上下叠好认，上排也不至于空得发飘 */
+@media (min-width: 900px) {
+  .tab {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .tab svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .tab-lb {
+    font-size: 12.5px;
+  }
+}
+
+/* ---- 「更多」抽屉 ----
+   一排一个图标认不出「设备 / 画面 / 连接」的区别，一行一个大长条又长：
+   两列磁贴平铺，每格「图标 + 名字 + 一句说明」，不再按组切小标题 */
+.more-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  /* 抽屉主体是纵向 flex：不写死宽度的话，内容超高时会被压缩、磁贴互相叠上来。
+     让它该多高就多高，超出交给主体滚 */
+  flex: none;
+}
+
+/* 磁贴：图标 + 名字一行成组。删掉那句说明后改用紧凑的两列网格，
+   抽屉更短、更清爽；触控目标仍保持 44px 以上 */
+.mtile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 10px;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--mtile-line, var(--line));
+  border-radius: var(--r-ctl);
+  color: var(--ink-2);
+  transition:
+    background var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out),
+    transform var(--dur-1) var(--ease-out);
+}
+
+.mtile-tx {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mtile-ic {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--card-2);
+  display: grid;
+  place-items: center;
+  color: var(--ink-2);
+  align-self: center;
+}
+
+.mtile-ic svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.mtile b {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 磁贴第二行说明：同一句话只在小字里，名称保持粗体优先；
+   空间不够先截说明，不把按钮名挤掉 */
+.mtile i {
+  font-style: normal;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--ink-3);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mtile.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.mtile.on b,
+.mtile.on .mtile-ic {
+  color: var(--accent-ink);
+}
+
+.mtile.on i {
+  color: var(--accent-ink);
+  opacity: 0.75;
+}
+
+@media (hover: hover) {
+  .mtile:hover {
+    background: var(--hover);
+    border-color: var(--ink-3);
+    transform: translateY(-1px);
+  }
+}
+
+.mtile:active {
+  background: var(--press);
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* 抽屉磁贴的键盘焦点用内描边：整圈 accent 外框容易被误读成「和底部更多一起选中」 */
+.mtile:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ink-2) 45%, transparent);
+  outline-offset: -3px;
+}
+.details {
+  z-index: 30;
+  right: 14px;
+  top: 56px;
+  width: min(320px, 100% - 28px);
+  margin: 0;
+  padding: 4px 14px;
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.24);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+
+.drow {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 0;
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--line);
+}
+
+.drow:last-child {
+  border-bottom: 0;
+}
+
+.drow span {
+  color: var(--ink-3);
+  flex: none;
+}
+
+.drow b {
+  font-weight: 500;
+  color: var(--ink-2);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.drow .ev-missing {
+  color: var(--accent-ink);
+  cursor: pointer;
+}
+
+.drow .ev-missing:hover {
+  text-decoration: underline;
+}
+
+.drow.actions {
+  gap: 8px;
+  padding: 10px 0 12px;
+}
+
+.drow.actions button {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  white-space: nowrap;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--card);
+}
+
+.drow.actions button:disabled {
+  opacity: 0.55;
+}
+
+.drow button {
+  width: 100%;
+  text-align: left;
+  padding: 0;
+  min-height: 22px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+@media (hover: hover) {
+  .drow button:hover {
+    color: var(--ink);
+  }
+}
+
+main {
+  flex: 1;
+  padding: 18px;
+  padding-bottom: 24px;
+}
+
+.pane {
+  display: none;
+  flex-direction: column;
+  /* 两级节奏：块与块之间（.pane）留大，块内部（.hcol）收紧。
+     以前到处都是 14px，眼睛分不出「这是另一组了」，一屏看下来是平的 */
+  gap: 18px;
+}
+
+.pane.on {
+  display: flex;
+}
+
+/* 切页时新面板轻轻抬一下：只淡入 6px，不做整页位移，长列表页来回切也不会晕。
+   class 由 showTab 落、动画放完自己摘掉，避免残留的 transform 把里面的定位元素换参照 */
+.pane.enter {
+  animation: pane-in var(--dur-2) var(--ease-out);
+}
+
+@keyframes pane-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* 总览页按「画面」和「控制」分两组，窄屏顺序铺开、宽屏并排 */
+.hcol {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  min-width: 0;
+}
+
+/* 首屏设备状态条：设备名已在顶部，这里只保留连接事实与快捷入口。
+   采用轻量技术读数，不重复放大设备身份，也不抢实时屏幕的主视觉。 */
+.device-brief {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.72fr) minmax(0, 1.55fr);
+  gap: 12px 24px;
+  align-items: center;
+  padding: 13px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--card);
+}
+
+.db-status {
+  min-width: 0;
+}
+
+.db-kicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.db-kicker i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+
+.db-kicker i.on {
+  background: var(--ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 18%, transparent);
+}
+
+.db-status p {
+  margin: 4px 0 0;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.db-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px 16px;
+  min-width: 0;
+}
+
+.db-facts > div {
+  min-width: 0;
+}
+
+.db-facts span {
+  display: block;
+  color: var(--ink-3);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.db-facts b {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.db-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+  padding-top: 1px;
+}
+
+.db-actions button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--card-2);
+  color: var(--ink);
+  font-size: 12.5px;
+}
+
+.db-actions button:hover {
+  background: var(--hover);
+}
+
+.db-actions button.primary {
+  border-color: transparent;
+  background: var(--accent-fill);
+  color: var(--on-accent);
+}
+
+.db-actions button.primary:hover {
+  background: var(--accent-press);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .db-actions button,
+  .tv-heading .reconnect {
+    min-height: 44px;
+  }
+}
+
+/* 控制页开头的一句定位：说明这里操作的是当前 ADB 设备，而不是某种固定形态 */
+.control-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 8px 20px;
+  padding: 2px 2px 0;
+}
+
+.control-kicker {
+  margin: 0 0 4px;
+  color: var(--accent-ink);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.control-intro h2 {
+  font-size: 19px;
+}
+
+.control-intro > p {
+  max-width: 560px;
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.key-console {
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--card);
+  padding: 0 16px;
+}
+
+.key-console > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.key-console > summary::-webkit-details-marker {
+  display: none;
+}
+
+.key-console > summary span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.key-console > summary small {
+  color: var(--ink-3);
+  font-size: 11.5px;
+}
+
+.kc-count {
+  color: var(--ink-3);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.key-console[open] {
+  padding-bottom: 16px;
+}
+
+@media (max-width: 640px) {
+  .device-brief {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 11px;
+    padding: 13px 14px;
+  }
+
+  .db-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 14px;
+  }
+
+  .db-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .db-actions button {
+    min-height: 44px;
+    padding: 0 10px;
+  }
+
+  .tv {
+    margin-top: 2px;
+  }
+
+  .tv-heading {
+    min-height: 44px;
+    margin-bottom: 7px;
+  }
+
+  .tv-heading .reconnect {
+    min-height: 44px;
+    padding-inline: 12px;
+  }
+
+  .control-intro {
+    align-items: start;
+  }
+
+  .control-intro > p {
+    max-width: none;
+  }
+}
+
+h2 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin: 8px 0 0;
+}
+
+.muted {
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+
+/* 紧凑的筛选项开关，紧跟输入框排成一行 */
+.toptoggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 2px 0 8px;
+  padding: 0 8px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  background: var(--bg-2);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.toptoggle input {
+  accent-color: var(--accent);
+}
+
+.caption {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+/* 说明被清空（读完后没内容可写）时整行撤掉，别在控件之间留一行空白 */
+.caption:empty {
+  display: none;
+}
+
+/* 功能在当前设备上不存在时，整组控件直接收起，而不是留一排灰色按钮 */
+.row.is-hidden {
+  display: none;
+}
+
+/* 功能依赖设备在线时，离线给一个可行动的收口：
+   不再在每个子页各写一套占位符，空白处也正好放得下这一条 */
+.empty-off {
+  display: grid;
+  gap: 6px;
+  padding: 14px 2px;
+  max-width: 520px;
+}
+
+.empty-off b {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.empty-off p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+.empty-off .row {
+  margin: 2px 0 0;
+}
+
+/* 首页右侧卡片空间窄，离线空态复用 .empty-off 时收成紧凑一段，
+   让健康快照和常用应用都不再留一整块空卡 */
+#homesnap .empty-off,
+.fav .empty-off {
+  padding: 10px 2px 12px;
+}
+
+.fav .empty-off .row {
+  margin-top: 6px;
+}
+
+/* 常用应用未读到清单时的紧凑空态：一行说明 + 一颗「重试」轻按钮，
+   不再让用户干等下一轮轮询 */
+.fav .fav-empty,
+#applist > .fav-empty {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 4px 0 2px;
+}
+
+.fav .fav-empty .caption,
+#applist > .fav-empty .caption {
+  margin: 0;
+}
+
+.fav .fav-empty button.link,
+#applist > .fav-empty button.link {
+  flex: none;
+  white-space: nowrap;
+  min-height: 28px;
+  padding: 0 4px;
+}
+
+/* 系统页离线空态在带边框的 .list 里展开：壳子已经有边框/底色，
+   内部不再叠一层自己的盒子，也避免每段各放一颗「连接设备」按钮 */
+.subpane[data-sub] > .list .empty-off {
+  border: 0;
+  background: transparent;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.link-main .list .empty-off {
+  border: 0;
+  background: transparent;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+/* 带悬停说明的说明行：鼠标停上去能看全文，给个 help 光标做暗示 */
+.caption[title],
+.muted[title] {
+  cursor: help;
+}
+
+/* 设备信息里藏了悬停说明的读数：虚线下划线做记号，提示这里还有半句 */
+.drow.wide b.hasnote {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+/* 长说明折进悬停提示：页面上只占一行，超出用省略号，点住看全文 */
+.cut {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  cursor: help;
+}
+
+/* 能力缺失/回读未确认的提示：用警告色区分"已生效"和"做不到" */
+.caption.warn {
+  color: var(--warn);
+}
+
+/* 长说明默认收起：只留一枚「说明」入口，点开才占版面。
+   满屏的机制解释把视线从读数本身抢走了，收起来比删掉好，真要查时还在原地 */
+.inote {
+  margin: 8px 0 0;
+}
+
+.inote > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  /* 页内其它 button 规则会把 44px 压回 40px，显式锁住触控尺寸 */
+  box-sizing: border-box;
+  font-size: 12px;
+  color: var(--ink-3);
+  cursor: pointer;
+  list-style: none;
+  border-radius: 8px;
+  padding: 0 8px;
+  margin: 0 -8px;
+  transition: color var(--dur-1) var(--ease-out);
+}
+
+.inote > summary::-webkit-details-marker {
+  display: none;
+}
+
+.inote > summary::before {
+  content: '?';
+  width: 15px;
+  height: 15px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.inote > summary::after {
+  content: '展开';
+  opacity: 0.7;
+}
+
+.inote[open] > summary::after {
+  content: '收起';
+}
+
+.inote > summary:hover,
+.inote > summary:focus-visible {
+  color: var(--ink-2);
+}
+
+.inote > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.inote > .caption {
+  margin-top: 6px;
+  max-width: 74ch;
+}
+
+.inote .caption b {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+}
+
+.pip {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: none;
+}
+
+.pip.idle {
+  background: var(--ink-3);
+}
+
+.now {
+  margin: 0 0 4px;
+  font-size: 14.5px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* 离线时挂在"设备画面"行尾的重连入口 */
+.reconnect {
+  margin-left: auto;
+  min-height: 44px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.reconnect:disabled {
+  background: var(--card-2);
+  color: var(--ink-3);
+}
+
+/* 通用设备画面监视器：不暗示手机 / 平板 / 盒子 / 模拟器，任何 ADB 设备共用 */
+.tv {
+  position: relative;
+  margin: 6px 4px 16px;
+  /* 预览高度的通用上限：竖屏手机靠它反推宽度，不会把一列拉成一座塔。
+     1180 起面板更宽，给设备画面稍高一点；窄屏保持 62vh 的保守高度 */
+  --preview-maxh: min(62vh, 560px);
+}
+
+.tv-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 44px;
+  margin-bottom: 9px;
+}
+
+.tv-kicker {
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.tv-source {
+  margin: 3px 0 0;
+  color: var(--ink-3);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tv-heading .reconnect {
+  flex: none;
+}
+
+.tv-frame {
+  position: relative;
+}
+
+.tv-screen[data-orientation='portrait'] {
+  /* 竖屏设备（手机/平板竖拿）按比例反推最大宽度，居中在画面栏里 */
+  max-width: calc(var(--preview-maxh) * var(--device-ratio, 0.5));
+  margin-inline: auto;
+}
+
+/* 窄屏和桌面都先让操作条待在画面下方。它不再盖住设备内容，
+   也不再和画面里的点按手势抢 pointer 事件；全屏时由 JS 移回画面内。 */
+.tv-tools {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+  margin: 14px 0 0;
+}
+
+.tv-tools .tv-acts {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  opacity: 1;
+  visibility: visible;
+}
+
+.tv-tools .tvbtn {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--ink-2);
+}
+
+@media (hover: hover) {
+  .tv-tools .tvbtn:hover {
+    background: var(--card-2);
+    color: var(--ink);
+  }
+}
+
+.tv-tools .tvbtn.on {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.tv-screen {
+  position: relative;
+  aspect-ratio: var(--device-ratio, 16 / 9);
+  /* 屏幕区永远是黑底：把配色变量就地钉回夜配色，
+     否则白天主题下「未连接」和厂牌字母会变成黑底黑字 */
+  --ink: #f2f2f4;
+  --ink-2: #a2a2ad;
+  --ink-3: #82828c;
+  --line: #2a2a33;
+  --accent: #e8323c;
+  --accent-ink: #ff6b62;
+  --accent-soft: rgba(232, 50, 60, 0.18);
+  background: #000;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 16px 34px -30px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+  /* 画面是操作面板而不是文字：点按时不要选出内容、不要出现拖拽幽灵 */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 点按回执：设备侧不回话，靠这一圈涟漪告诉用户「这一下发出去了」 */
+.tv-ripple {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.28);
+  pointer-events: none;
+  animation: tv-ripple 560ms ease-out forwards;
+}
+
+@keyframes tv-ripple {
+  from {
+    opacity: 0.9;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-ripple {
+    animation-duration: 220ms;
+  }
+}
+
+/* 两层画面叠着：单张 img 换 src 的瞬间浏览器会丢掉旧画面，
+   设备慢的时候就是「画面一闪一黑」，所以新帧先加载到隐藏层、加载完再翻上来 */
+.tv-screen .tv-shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.12s linear;
+  /* 画面是给鼠标/手指当触摸板用的：不关掉原生图片拖拽，
+     按住一拖就变成浏览器拖图，pointerup 永远不来，滑动就发不出去 */
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+.tv-screen .tv-shot.on {
+  opacity: 1;
+}
+
+/* 比例不同必然有黑边：要么完整显示留边，要么铺满裁掉四周，交给用户选 */
+.tv-screen.cover .tv-shot {
+  object-fit: cover;
+}
+
+.tv.live.has-frame .tv-idle {
+  display: none;
+}
+
+.tv-idle {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+}
+
+/* 预览开关直接压在画面上：没采集时一直露着好找，采集中轻点画面才显形、2.5 秒自动收回。
+   用 visibility 而不是 display，收起后既不可见也不进焦点序列 */
+.tv-acts {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+.tv-acts.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tvbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 64px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: rgba(9, 9, 11, 0.74);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* 预览 / 点按依赖设备在线：离线禁用后不跟正常按钮抢视觉，仍保证能看出不可点 */
+.tvbtn:disabled {
+  opacity: 0.42;
+  color: var(--ink-3);
+  box-shadow: none;
+  cursor: default;
+}
+
+.tvbtn:disabled:hover {
+  background: rgba(9, 9, 11, 0.74);
+}
+
+@media (hover: hover) {
+  .tvbtn:hover {
+    background: rgba(20, 20, 24, 0.86);
+  }
+}
+
+.tvbtn.on {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* 离线时「点按」按钮还记着上次开启的状态；禁用态必须压过 .on 的红框，
+   否则用户会以为它仍然可以点 */
+.tvbtn.on:disabled {
+  border-color: var(--line);
+  color: var(--ink-3);
+}
+
+/* 预览正在抓第一帧：轻脉冲代替干等 */
+.tvbtn.busy {
+  animation: preview-busy 1s ease-in-out infinite;
+}
+
+@keyframes preview-busy {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.tvbtn.sq {
+  width: auto;
+  padding: 0 9px;
+  font-size: 12px;
+}
+
+/* 图标和短标签共用一条操作条：普通视图也能直接看懂每个动作 */
+.tvbtn-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.tvbtn-lb {
+  font-size: 11.5px;
+  line-height: 1;
+}
+
+.tvbtn.sq svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* 全屏时退出键带文字，别让鼠标用户在一个只有图标的黑屏里打转 */
+.tvbtn.wide {
+  width: auto;
+  min-width: 44px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.tvbtn.wide .tvbtn-lb {
+  font-size: 13px;
+}
+
+.fs-hint {
+  transition: opacity 0.28s ease;
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 7px 14px;
+  border-radius: 14px;
+  background: rgba(9, 9, 11, 0.72);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  line-height: 1.5;
+  /* 窄面板（内置浏览器侧栏）里 nowrap 会把提示条顶出屏幕，允许折行并限宽 */
+  max-width: min(92vw, 460px);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* 提示条自己不吃点击（免得挡住画面），但里面的入口要能点 */
+.fs-note {
+  display: block;
+  color: var(--accent-ink);
+}
+
+/* 全屏时补一句画面尺寸和黑边由来，省得用户以为是裁切坏了 */
+.fs-meta {
+  display: block;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 提示条淡出后只剩画面，鼠标靠顶部或操作被拦下时会再回来 */
+.fs-hint.dim {
+  opacity: 0;
+  /* 淡出之后必须彻底让路：0 透明度还继续吃点击的话，顶部那一条
+     就成了「点了什么都不发生」的隐形门槛 */
+  pointer-events: none;
+}
+
+.fs-hint.dim .fs-hint-go {
+  pointer-events: none;
+}
+
+/* 只读角标：常驻左下角，和右下角的按钮条分居两侧，谁也不挡谁 */
+.ro-badge {
+  position: absolute;
+  left: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 45;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(126, 22, 22, 0.82);
+  border: 1px solid #d2706d;
+  color: #ffe8e6;
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.fs-hint-go {
+  pointer-events: auto;
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--accent-ink);
+  text-underline-offset: 2px;
+}
+
+/* 进全屏一定会带上 .fs，原生全屏也是同一条路径，所以判 .fs 就够。
+   以前这里写成两条独立的 :not()，在没有原生全屏 API 的浏览器里
+   （内置浏览器）:not(:fullscreen) 永远命中，提示条等于被隐藏 */
+.tv-screen:not(.fs) .fs-hint {
+  display: none;
+}
+
+/* iOS Safari 没有元素级全屏 API，所以全屏先用铺满视口这条路兜住；原生全屏成功时共用同一套尺寸 */
+.tv-screen.fs,
+.tv-screen:fullscreen,
+.tv-screen:-webkit-full-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  /* 用 100% 而不是 100vw/100dvh：fixed 的包含块就是视口，两者等价，
+     但内置浏览器进出原生全屏时会带一层宿主缩放，vw/dvh 在这种场景下会跟宿主
+     算出的视觉视口打架（实测全屏态算出来的 rect 比真实视口大一圈）。
+     100% 只认包含块，没有再乘一次缩放系数，全屏进出都落在同一个尺寸上 */
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+  margin-inline: 0;
+  border-width: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #000;
+}
+
+body.fs-lock {
+  overflow: hidden;
+}
+
+body.more-lock {
+  overflow: hidden;
+}
+
+.tv-screen.fs .tv-acts,
+.tv-screen:fullscreen .tv-acts,
+.tv-screen:-webkit-full-screen .tv-acts {
+  display: flex;
+  flex-wrap: nowrap;
+  position: absolute;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+}
+
+.tv-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* 前台应用有真机 logo 时直接顶替厂牌字母 */
+.tv-logo.has-logo {
+  background: transparent;
+}
+
+.tv-logo img {
+  display: block;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.tv-idle p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.tv-idle .tv-sub {
+  max-width: 34ch;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* 取首帧时给一个低干扰的脉冲点：黑屏上只写一行字，用户仍会觉得「页面卡住了」。
+   动画很轻、可被 reduced-motion 关掉，也不抢画面主体 */
+.tv-idle .tv-sub.waiting::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: 1px;
+  animation: tv-wait 1.4s ease-in-out infinite;
+}
+
+@keyframes tv-wait {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-idle .tv-sub.waiting::before {
+    animation: none;
+    opacity: 0.75;
+  }
+}
+
+.tv-idle .tv-cta {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 12.5px;
+}
+
+@media (hover: hover) {
+  .tv-idle .tv-cta:hover {
+    background: var(--accent-ink);
+    border-color: var(--accent-ink);
+  }
+}
+
+.tv-idle-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+  pointer-events: auto;
+}
+
+.tv-idle .tv-secondary {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 12.5px;
+}
+
+.tv-idle .tv-secondary:disabled {
+  opacity: 0.55;
+}
+
+@media (hover: hover) {
+  .tv-idle .tv-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--ink);
+  }
+}
+
+/* 内层卡片 */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: 15px;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card-t {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.bignum {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.volslide {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 10px;
+}
+
+.v-ico {
+  flex: none;
+  color: var(--ink-3);
+  display: grid;
+  place-items: center;
+}
+
+.v-ico svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.volslide input {
+  flex: 1;
+}
+
+.card-bot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rounds {
+  display: flex;
+  gap: 8px;
+}
+
+.round {
+  /* 全局 button 的内边距会把 44px 压成 42px；用 min + flex-basis 锁住触控尺寸 */
+  flex: 0 0 auto;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 16px;
+  display: grid;
+  place-items: center;
+}
+
+@media (hover: hover) {
+  .round:hover {
+    background: var(--hover);
+  }
+}
+
+.round:active {
+  transform: scale(0.93);
+}
+
+/* 按下立刻变色，不用等 adb 回包就知道命中了哪个键 */
+[data-key].firing {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  transform: scale(0.95);
+}
+
+.link {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  /* 负 margin 抵掉 padding，视觉排版不变、点按区域扩到 44px 高 */
+  padding: 13px 8px;
+  margin: -13px -8px;
+  /* 「管理」两个字 + 左右 8px 内边距只有 41px 宽，高度到了 44、宽度没到。
+     保底 44 之后这点差量由负 margin 落进卡片 15px 的内边距里，视觉不变 */
+  min-width: 44px;
+}
+
+@media (hover: hover) {
+  .link:hover {
+    color: var(--ink);
+  }
+}
+
+.link:active {
+  color: var(--ink);
+  transform: translateY(1px);
+}
+
+.fav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px 8px;
+  margin-top: 14px;
+}
+
+/* 离线空态不是应用瓦片，必须在网格里横跨整行，不能把自己挤成第一列 74px 宽 */
+.fav .empty-state,
+.fav .caption,
+#applist > .empty-state {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.tile .ico {
+  overflow: hidden;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.tile .lb {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  max-width: 100%;
+  text-align: center;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  /* 包名和商品名多是一个不带空格的长单词（SmartTube / FileManager）。
+     不给 anywhere 的话它们整行溢出被 overflow 切掉，两行 clamp 也用不上，
+     用户看到的就是半个名字。允许任意位置断行之后，两行 clamp 才真的接得住 */
+  overflow-wrap: anywhere;
+}
+
+/* 320px 这类最窄屏：四列平摊下来每列只剩 45px，连 File Manager 都差 2px。
+   把列间距从 8px 收到 4px 让回 3px 列宽，字号降到 10.5px 再让一点，
+   能整行显示的就整行，实在长的才走上面那条两行断行 */
+@media (max-width: 360px) {
+  .fav {
+    gap: 12px 4px;
+  }
+
+  .tile .lb {
+    font-size: 10.5px;
+  }
+}
+
+.tile:active .ico {
+  transform: scale(0.94);
+  background: var(--press);
+}
+
+.inrow {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.initem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.initem:last-child {
+  border-bottom: 0;
+}
+
+.initem .ico {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.initem .txt {
+  min-width: 0;
+  flex: 1;
+}
+
+.initem .txt b {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.initem .txt span {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.initem .chev {
+  color: var(--ink-3);
+  font-size: 15px;
+  flex: none;
+}
+
+/* 按键通路状态：直写输入设备还是回退 keyevent，用户能一眼看到真实原因 */
+.pathline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.pathline b {
+  color: var(--ink-2);
+  font-weight: 600;
+  flex: none;
+}
+
+.pathline span {
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+.pathline.fast span {
+  color: var(--accent-ink);
+}
+
+/* 控制页分成两组：左边是「按键」那条设备按键列，右边是输入与手势。
+   手机上两组按 DOM 顺序照样竖着排，间距和以前一模一样（外面 18px、里面 18px）；
+   宽屏才把两组并成两列，见文件末尾的 1280 媒体查询 */
+.pad-main,
+.pad-side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* 设备按键再分两组：左侧是方向与媒体，右侧是触控板与功能键。
+   窄屏和中等屏仍按 DOM 顺序竖排，只有宽屏才摊成两列 */
+.pad-col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* 两条说明同属一组：各自保留 44px 的触控热区，但组内不再叠加
+   pad-col 的 18px 间距和 .inote 的 8px 上边距，避免中间空出断层 */
+.pad-notes {
+  display: flex;
+  flex-direction: column;
+  margin-top: -8px;
+}
+
+.pad-notes .inote {
+  margin: 0;
+}
+
+/* 方向键 */
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-areas:
+    '. up .'
+    'left ok right'
+    '. down .';
+  gap: 8px;
+}
+
+.dpad button {
+  min-height: 62px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 15px;
+}
+
+@media (hover: hover) {
+  .dpad button:hover {
+    background: var(--card-2);
+  }
+}
+
+.k.up { grid-area: up }
+.k.down { grid-area: down }
+.k.left { grid-area: left }
+.k.right { grid-area: right }
+
+.k.ok {
+  grid-area: ok;
+  /* 实心红底 + 白字要单独挑色（--accent-fill）：直接用 --accent 的话白字只有 4.24:1 */
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+  color: var(--on-accent);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+@media (hover: hover) {
+  .k.ok:hover {
+    background: var(--accent-press);
+  }
+}
+
+.pad-keys {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+button.key,
+.pad-keys button,
+.row button {
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: var(--r-ctl);
+  background: var(--card);
+  border: 1px solid var(--line);
+  font-weight: 500;
+}
+
+.pad-keys button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+@media (hover: hover) {
+  .pad-keys button:hover,
+  .row button:hover {
+    background: var(--card-2);
+  }
+}
+
+.pad-keys button:active,
+.row button:active {
+  transform: scale(0.97);
+}
+
+/* 离线时系统页那排读取按钮虽然 disabled，但不能只靠浏览器默认样式：
+   白字和普通按钮几乎一样，用户仍会去点。统一压暗并去掉悬停反馈。 */
+.row button:disabled,
+.recctl button:disabled {
+  opacity: 0.42;
+  color: var(--ink-3);
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .row button:disabled:hover,
+  .recctl button:disabled:hover {
+    background: var(--card);
+  }
+}
+
+.row button:disabled:active,
+.recctl button:disabled:active {
+  transform: none;
+}
+
+/* 触控板 */
+.touchpad-card {
+  padding: 10px 12px;
+}
+
+.touchpad {
+  position: relative;
+  width: 100%;
+  min-height: 220px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* 面板底纹：极淡的网格点，给「这是一块可以滑的板」一点视觉提示 */
+.touchpad::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(color-mix(in srgb, var(--ink) 12%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.touchpad:active,
+.touchpad.active {
+  cursor: crosshair;
+}
+
+/* 没有鼠标驱动也没有分辨率：整块禁用，别让人对着点不动的面板反复试 */
+.touchpad.off {
+  background: var(--card-2);
+  border-style: dashed;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.touchpad.off::before {
+  opacity: 0.12;
+}
+
+.touchpad.off #tpCursor {
+  opacity: 0.3;
+}
+
+/* 绝对坐标模式：面板就是整块屏幕，边框提示一下这个映射关系 */
+.touchpad.absolute {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+}
+
+/* 左键按住中：拖动就是拖拽，用边框和底色明确标出来 */
+.touchpad.held {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+}
+
+#tpCursor {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  margin-top: -11px;
+  pointer-events: none;
+  transition: transform 0.08s ease;
+}
+
+/* 触屏模式：指示点跟手指走，放大成可点按的指腹标记 */
+#tpCursor.abs {
+  width: 30px;
+  height: 30px;
+  margin-left: -15px;
+  margin-top: -15px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  opacity: 0.95;
+}
+
+#tpCursor.abs::before,
+#tpCursor.abs::after {
+  opacity: 0.35;
+}
+
+/* 拖动轨迹：只在触屏模式按住并拖开时出现，让「我在往哪滑」一眼可见 */
+.tp-trace {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tp-trace[hidden] {
+  display: none;
+}
+
+.tp-trace .tp-line {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 2px;
+  width: 1px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--accent) 70%, transparent);
+  transform-origin: 0 50%;
+}
+
+.tp-trace .tp-origin,
+.tp-trace .tp-head {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  margin-top: -4px;
+  border-radius: 50%;
+}
+
+.tp-trace .tp-origin {
+  background: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.tp-trace .tp-head {
+  border: 1.5px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+#tpCursor::before,
+#tpCursor::after {
+  content: "";
+  position: absolute;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+#tpCursor::before {
+  width: 14px;
+  height: 2px;
+  top: 10px;
+  left: 4px;
+}
+
+#tpCursor::after {
+  width: 2px;
+  height: 14px;
+  top: 4px;
+  left: 10px;
+}
+
+.touchpad-card .card-top {
+  margin-bottom: 8px;
+}
+
+.touchpad-card .caption {
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  line-height: 1.35;
+}
+
+.tp-keys {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+/* 触控板辅助按键：左/右/中/侧/前进 + 滚轮 + 按住左键开关 */
+.tp-aux {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tp-aux .chip {
+  flex: 1 1 auto;
+  min-width: 52px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.tp-aux .chip.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.row .grow {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* 手动连接：端口框窄一点，别把 IP 输入挤没 */
+.row .port {
+  flex: none;
+  width: 78px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.caption.mono {
+  margin-top: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--ink-2);
+  user-select: all;
+}
+
+.caption.mono:empty {
+  display: none !important;
+}
+
+.media button {
+  flex: 1 1 0;
+  min-width: 58px;
+  min-height: 52px;
+  font-size: 16px;
+}
+
+.sw {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.sw-red { background: #e8323c }
+.sw-green { background: #2fae62 }
+.sw-yellow { background: #e3a008 }
+.sw-blue { background: #3b7ae8 }
+
+input,
+select {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  padding: 9px 11px;
+  min-height: 44px;
+}
+
+input[type='range'] {
+  accent-color: var(--accent);
+  padding: 0;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+}
+
+/* 禁用的滑杆只剩一条灰轨道：白色轨道在暗底上太像"可以拖"，离线时容易误导 */
+input[type='range']:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+input[type='range']:disabled::-webkit-slider-runnable-track {
+  background: var(--line);
+  border-radius: 3px;
+  height: 6px;
+}
+
+input[type='range']:disabled::-webkit-slider-thumb {
+  background: var(--ink-3);
+  border: 0;
+}
+
+.round:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+@media (hover: hover) {
+  .round:disabled:hover {
+    background: var(--card-2);
+  }
+}
+
+.round:disabled:active {
+  transform: none;
+}
+
+.slider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-2);
+  flex: 1 1 190px;
+  min-height: 44px;
+}
+
+.slider input {
+  flex: 1;
+  min-width: 80px;
+}
+
+.value {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  min-width: 48px;
+  text-align: right;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.appbtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  min-height: 52px;
+  padding: 0 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  font-weight: 500;
+}
+
+.appbtn .mono {
+  overflow: hidden;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--card-2);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.appbtn .txt {
+  min-width: 0;
+  display: block;
+}
+
+/* 启动列表：桌面端应用名 + 包名两行，高度铺得下；
+   手机端只留应用名一行（包名收进 title），行高随之收窄，
+   同样首屏能露出更多应用而不显得一屏全是英文包名 */
+.appbtn .txt b {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appbtn .txt span {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appbtn span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 899px) {
+  .appbtn {
+    min-height: 46px;
+    padding: 0 11px;
+  }
+
+  .appbtn .mono {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .appbtn .txt b {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* 宽屏仍有包名副行；手机上只留应用名后，
+     单行用 align-items 居中即可，不需要额外 padding 抵消第二行消失的高度 */
+  .appbtn .txt b + span {
+    display: none;
+  }
+}
+
+@media (hover: hover) {
+  .appbtn:hover {
+    background: var(--card-2);
+  }
+}
+
+.appbtn:active {
+  transform: scale(0.98);
+}
+
+.pic {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  overflow: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.pictrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* 主行给人话名称，副行保留原始 settings key 便于核对 */
+.kname {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kname b {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  /* 中文名允许折行：320px 上「自动亮度（0 关 1 开）」比可用宽度宽 16px，
+     一行装不下就整句被省略号吃掉。改成折行后满名字都在，行高按需长一点 */
+  overflow-wrap: anywhere;
+}
+
+.kname span {
+  font-size: 11px;
+  color: var(--ink-3);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.pictrow input {
+  width: 128px;
+  flex: none;
+  min-height: 44px;
+  padding: 6px 9px;
+}
+
+/* 应用时长磁贴：名字 + 包名时长 + 按窗口内最长应用归一化的比例条。
+   窄屏单列，宽屏（≥1180）自动摊成三列，页面不再只堆在左边一组 */
+.utile {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.utile:last-child {
+  border-bottom: 0;
+}
+
+.utile b {
+  font-size: 13.5px;
+  font-weight: 550;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.utile em {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.utile .ubar {
+  display: block;
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.utile .ubar b {
+  display: block;
+  height: 100%;
+  min-width: 3px;
+  border-radius: 3px;
+  background: var(--ink-3);
+}
+
+.utile:first-child .ubar b {
+  background: var(--accent);
+}
+
+#usage {
+  margin-top: 12px;
+}
+
+@media (min-width: 1180px) {
+  #usage {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .utile {
+    border-bottom: 1px solid var(--line);
+    padding: 12px 0;
+  }
+
+  .utile:last-child,
+  .utile:nth-last-child(2):nth-child(3n + 1),
+  .utile:nth-last-child(3):nth-child(3n + 1) {
+    border-bottom: 0;
+  }
+}
+
+code {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+
+.p-foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.st {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.st::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+
+.st.on::before {
+  background: var(--accent);
+}
+
+.fmodel {
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#log {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  top: 68px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* 必须盖过顶部 app bar（70）和底部导航（70），否则 toast 会钻到导航后面 */
+  z-index: 80;
+  pointer-events: none;
+  max-width: 392px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  #log {
+    left: auto;
+    right: 24px;
+    top: 84px;
+    width: min(360px, calc(100vw - 48px));
+    margin: 0;
+  }
+}
+
+/* 全屏时提示条浮在画面层上方，不再遮住底部内容 */
+body.fs-lock #log {
+  top: 14px;
+}
+
+.toast {
+  position: relative;
+  background: var(--toast);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 11px 14px;
+  font-size: 13.5px;
+  color: var(--ink);
+  animation: in 0.2s ease-out;
+  z-index: 60;
+}
+
+.toast.err {
+  color: var(--err);
+}
+
+.toast.warn {
+  color: var(--warn);
+}
+
+/* 长操作提示：顶部细条，左侧小转圈 + 当前操作名，区别于短暂错误/成功 toast。
+   只保留一条，正在执行的安装/录屏/上传/下载/唤醒往往要几秒到几十秒。 */
+.toast.opbusy {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  /* 用低饱和底 + 细边，不去抢设备画面的视觉；进度靠左侧转圈表达 */
+  background: color-mix(in srgb, var(--card-2) 92%, transparent);
+  border-color: var(--line);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  padding: 9px 13px;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px -16px rgb(0 0 0 / 0.7);
+}
+
+.toast.opbusy::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  border-top-color: var(--accent);
+  animation: scan-spin 0.8s linear infinite;
+}
+
+.toast.out {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* 页内确认/输入弹层：替代系统 confirm/prompt，避免内嵌 WebView 弹不出窗口 */
+.dlg {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.dlg-mask {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+  backdrop-filter: blur(4px);
+}
+
+.dlg-card {
+  position: relative;
+  width: min(420px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  animation: dlg-in 0.2s var(--ease-out);
+}
+
+.dlg-msg {
+  margin: 0 0 16px;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--ink);
+  white-space: pre-line;
+}
+
+.dlg-input {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 11px 13px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color var(--dur-1) var(--ease-out);
+}
+
+.dlg-input:focus {
+  border-color: var(--accent);
+}
+
+.dlg-acts {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.dlg-acts button {
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  font-family: inherit;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: all var(--dur-1) var(--ease-out);
+}
+
+.dlg-cancel {
+  color: var(--ink-2);
+  background: transparent;
+}
+
+.dlg-cancel:hover {
+  background: var(--hover);
+}
+
+.dlg-ok {
+  color: var(--on-accent);
+  background: var(--accent-fill);
+  border-color: transparent;
+}
+
+.dlg-ok:hover {
+  background: var(--accent-press);
+}
+
+.dlg-ok.danger {
+  background: var(--accent-fill);
+}
+
+.dlg-ok.danger:hover {
+  background: var(--accent-press);
+}
+
+@keyframes dlg-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+
+@keyframes in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* 系统开了「减弱动态效果」时，只保留状态切换、去掉位移和缩放 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-fill-mode: both !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  button:active,
+  .tile:active .ico,
+  .stale:active,
+  [data-key].firing {
+    transform: none;
+  }
+}
+
+/* 低频按键折起来，控制页第一屏就能拿到方向键和常用键 */
+.fold {
+  margin-top: 14px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.fold summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  list-style: none;
+}
+
+.fold summary::-webkit-details-marker {
+  display: none;
+}
+
+.fold summary::after {
+  content: '›';
+  margin-left: auto;
+  color: var(--ink-3);
+}
+
+.fold[open] summary::after {
+  content: '⌄';
+}
+
+.fold .pad-keys {
+  margin-bottom: 12px;
+}
+
+/* details 折叠机制在显式 display:grid 的内容上会失效，颜色键会溢出到折叠区外、
+   甚至被底部导航遮住；这里显式按开合状态收放内容，不再依赖浏览器默认折叠 */
+.fold:not([open]) .pad-keys {
+  display: none;
+}
+
+/* ---- 键盘输入与手势（控制页） ---- */
+
+/* 「设备画面」行尾的动作区：截图和重连并排靠右。
+   两颗都用 .reconnect 那套胶囊外观，但只由外面的容器吃掉 auto 外边距，
+   否则两个 margin-left:auto 会把空白从中间劈开、把按钮推到行中央 */
+.eyebrow-acts {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.eyebrow-acts .reconnect {
+  margin-left: 0;
+}
+
+/* 键盘输入：整页唯一的自由文本控件。字号刻意用 16px ——
+   iOS 上聚焦小于 16px 的输入框会把整页缩放一次 */
+#textin {
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 12px;
+  border-radius: var(--r-ctl);
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+#textin::placeholder {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+#textin:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+#textin:disabled {
+  opacity: 0.55;
+}
+
+#textvia {
+  font-size: 11.5px;
+}
+
+#textvia.warn {
+  color: var(--warn);
+}
+
+/* 手势：自适应等宽按钮。窄面板自动从三列退到两列，不做横向滚动 */
+.gest {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 8px;
+}
+
+.gest button {
+  min-height: 46px;
+  padding: 0 8px;
+  border-radius: var(--r-ctl);
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.gest button:disabled {
+  opacity: 0.45;
+}
+
+@media (hover: hover) {
+  .gest button:not(:disabled):hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+  }
+}
+
+.gest button:active,
+.gest button.fire {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  transform: scale(0.97);
+}
+
+/* 面板内分段：应用和设备页内容长，拆成同屏可切的子视图，列表自身限高滚动，避免整页无限拖 */
+.seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  /* 设备页有 6 段（信息 / 进程 / 文件 / 健康 / 录屏 / 日志）。320px 机身上每段只剩 42px，
+     低于 44px 触控底线。按钮保底 44px：放得下就均分，放不下让这一条自己横滚，
+     既不缩目标，也不换行把面板头顶撑成两排 */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.seg::-webkit-scrollbar {
+  display: none;
+}
+
+.seg button {
+  flex: 1;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .seg button:hover {
+    color: var(--ink);
+  }
+}
+
+.seg button:active {
+  transform: scale(0.97);
+}
+
+.seg button.on {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+/* 详情面板里的外观切换：三档挤在一行，比默认 seg 矮一档，别把详情卡撑成主角 */
+.seg-sm {
+  flex: none;
+  margin-bottom: 0;
+  padding: 3px;
+  gap: 2px;
+}
+
+.seg-sm button {
+  flex: none;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.drow .seg-sm button {
+  width: auto;
+  min-height: 30px;
+  text-align: center;
+  color: var(--ink-2);
+}
+
+@media (hover: hover) {
+  .drow .seg-sm button:hover {
+    color: var(--ink);
+  }
+}
+
+.drow .seg-sm button.on {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.subpane {
+  display: none;
+}
+
+.subpane.on {
+  display: block;
+}
+
+/* 定长而不是 52vh：手机浏览器 vh 会算进地址栏，列表高度跟着抖，这里就要一个稳定的滚动区。
+   手机上不再自滚：整列交给页面一起滚，420 限高在 419 视口里凭空造出一条滚动条 */
+.list.tall,
+.grid.tall {
+  max-height: 420px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 480px) {
+  .list.tall,
+  .grid.tall {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+/* 操作日志抽屉：从底部拉起，盖住面板主体，历史条目留在 localStorage 里 */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--scrim);
+  display: grid;
+  align-content: end;
+}
+
+.sheet[hidden] {
+  display: none;
+}
+
+/* 抽屉的进出场：蒙层淡入，面板从底部推上来。
+   位移只走 transform，收场时由 app.js 加 .out 播反向动画再落 hidden（连点也不会闪） */
+.sheet {
+  animation: sheet-fade var(--dur-2) var(--ease-out) both;
+}
+
+.sheet-head,
+.sheet-body {
+  animation: sheet-rise var(--dur-2) var(--ease-out) both;
+}
+
+.sheet.out {
+  animation: sheet-fade-out var(--dur-1) ease-out both;
+}
+
+.sheet.out .sheet-head,
+.sheet.out .sheet-body {
+  animation: sheet-sink var(--dur-1) ease-out both;
+}
+
+@keyframes sheet-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-rise {
+  from {
+    transform: translateY(14px);
+  }
+}
+
+@keyframes sheet-sink {
+  to {
+    transform: translateY(14px);
+  }
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 392px;
+  margin: 0 auto;
+  padding: 14px 16px 12px;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  border-radius: 20px 20px 0 0;
+}
+
+.sheet-head b {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.sheet-head .gap {
+  flex: 1;
+}
+
+.sheet-head button {
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: 12.5px;
+}
+
+.sheet-head .icon-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 13px;
+}
+
+.sheet-head button:active {
+  transform: scale(0.96);
+}
+
+.sheet-body {
+  overflow: auto;
+  /* 收起来的六个面板排成两行磁贴 + 3 个小标题，比原来的六行长列表矮一半。
+     86vh 是给窄机身留的：320×568 这类屏幕上 82vh 会差几十像素，正好只藏住最后一格，
+     看着像坏了。放到 86vh 一屏放得下，再往下才是真的该滚（字体被系统放大时）；
+     高屏仍被 620px 兜住不至于拉太长 */
+  max-height: min(86vh, 620px);
+  width: 100%;
+  max-width: 392px;
+  margin: 0 auto;
+  padding: 6px 16px calc(16px + env(safe-area-inset-bottom));
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+}
+
+.oprow {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.oprow:last-child {
+  border-bottom: 0;
+}
+
+.oph {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.oph em {
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.oph b {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oph i {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--ink-3);
+  flex: none;
+}
+
+.odb {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.oprow.ok .oph b {
+  color: var(--ink);
+}
+
+.oprow.err .oph b,
+.oprow.err .odb {
+  color: var(--err);
+}
+
+.oprow.warn .odb {
+  color: var(--warn);
+}
+
+/* 逐行管理的应用清单：行首展开，动作按钮收在展开面里，避免误点卸载 */
+.list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 0 12px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.invrow {
+  border-bottom: 1px solid var(--line);
+}
+
+.invrow:last-child {
+  border-bottom: 0;
+}
+
+.invhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  min-height: 54px;
+  padding: 8px 0;
+}
+
+.invhead .mono {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--card-2);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  color: var(--ink-2);
+  overflow: hidden;
+}
+
+.invhead .mono img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.invhead .txt {
+  flex: 1;
+  min-width: 0;
+}
+
+.invhead .txt b {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invhead .txt span {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invhead .chev {
+  flex: none;
+  color: var(--ink-3);
+  font-size: 15px;
+}
+
+.invbody {
+  display: none;
+  padding: 0 0 12px;
+}
+
+.invrow.open .invbody {
+  display: block;
+}
+
+.pkgline {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+.row.acts {
+  gap: 7px;
+}
+
+.chip {
+  min-height: 44px;
+  padding: 0 13px;
+  border-radius: var(--r-ctl);
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 500;
+  display: inline-grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .chip:hover {
+    border-color: var(--ink-3);
+  }
+}
+
+.chip:active {
+  transform: translateY(1px);
+}
+
+.chip:disabled {
+  opacity: 0.5;
+}
+
+.chip.danger {
+  color: var(--accent-ink);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+.chip.armed {
+  background: var(--accent-soft);
+}
+
+/* 应用清单筛选条：.seg-sm 那套 30px 是给行内小开关用的，
+   这里是主操作入口，触控目标要回到 44px，并和下面的列表留出间距 */
+#invfilter {
+  margin: 10px 0 12px;
+  padding: 4px;
+}
+
+#invfilter button {
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 12.5px;
+}
+
+/* 窄屏上五个筛选项横滚的话，最后一项「全部」等于不存在；宁可换行也要全部露出来 */
+@media (max-width: 560px) {
+  #invfilter {
+    flex-wrap: wrap;
+  }
+
+  #invfilter button {
+    flex: 1 0 auto;
+  }
+}
+
+.pickbtn {
+  min-height: 44px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--r-ctl);
+  background: var(--card);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .pickbtn:hover {
+    background: var(--card-2);
+  }
+}
+
+.apkcard {
+  margin-top: 10px;
+}
+
+.drow.wide {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 4px 14px;
+  justify-content: flex-start;
+}
+
+/* 设备信息里的值左对齐：标签和值挨着放，长串（指纹、分区列表）折行后仍成段可读 */
+.drow.wide b {
+  text-align: left;
+}
+
+.drow.wide .inote {
+  grid-column: 2;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+/* 手机：标签在上、值在下，避免窄列把长值挤成锯齿 */
+@media (max-width: 520px) {
+  .drow.wide {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+
+  .drow.wide > span:first-child {
+    font-size: 11.5px;
+  }
+
+  .drow.wide .inote {
+    grid-column: 1;
+  }
+}
+
+/* 搜索结果行：IP 为主、证据为辅，动作收在右侧小按钮 */
+.scan-group {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+
+.srow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+/* 连接候选里「没开调试端口」的设备不是坏数据，只是暂时不能动作；
+   整行降级 + 左侧灰点，和可连接行一眼分成两类 */
+.srow.snoadb {
+  color: var(--ink-3);
+  background: color-mix(in srgb, var(--card-2) 42%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+.srow.snoadb b {
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+.srow.snoadb::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-right: 1px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.srow.snoadb .s-sub::before {
+  content: "需要打开网络 ADB";
+  display: block;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--warn);
+}
+
+.srow:last-child {
+  border-bottom: 0;
+}
+
+/* 当前设备行没有操作按钮，不需要撑到 56px 再拖一条分隔线：
+   收成一行紧凑信息，跟下面「网段内其它设备」的分组提示衔接 */
+.srow.is-current {
+  min-height: 0;
+  padding: 2px 0 10px;
+  border-bottom: 0;
+}
+
+.srow.is-current b {
+  font-weight: 600;
+}
+
+.srow .s-main {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.srow b {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.srow .s-sub {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+.srow .chip {
+  flex: none;
+}
+
+/* 系统页的开关：开启态用主题色描边，关闭态压暗 —— 不引入绿色，
+   保持整套配色只有"红=可操作/已生效、灰=未生效"两层语义 */
+.chip.on {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.chip.off {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--ink-3);
+}
+
+@media (hover: hover) {
+  .chip.off:hover {
+    border-color: var(--ink-3);
+    color: var(--ink-2);
+  }
+}
+
+/* 当前桌面那行：不能再点，用文字标记而不是按钮，避免误以为还能切过去 */
+.curtag {
+  flex: none;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+/* 被关掉自启的行整行降级：一眼扫过去就知道哪些不参与开机 */
+.srow.off b {
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+/* 能力横幅：这台设备支持到哪一步、实际走哪条通路。
+   设备差异都摊开写在这里，避免用户以为"功能坏了"其实是设备不支持 */
+.caps {
+  margin: 10px 0 2px;
+  padding: 12px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--card);
+}
+
+/* 系统页离线入口：三个子段共用这一条，避免每段都重复「先连接设备」。
+   用左线强调而不是整块高饱和底色，保持与能力横幅同一套卡片语言。 */
+.sysoff {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 14px;
+  align-items: center;
+  margin: 10px 0 14px;
+  padding: 12px 14px 12px 15px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-card);
+  background: var(--card);
+}
+
+.sysoff b {
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.sysoff p {
+  grid-column: 1;
+  margin: 1px 0 0;
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.sysoff button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .sysoff button:hover {
+    background: var(--accent-ink);
+    border-color: var(--accent-ink);
+  }
+}
+
+@media (max-width: 520px) {
+  .sysoff {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .sysoff button {
+    grid-column: 1;
+    grid-row: auto;
+    width: 100%;
+  }
+}
+
+.caps-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.caps-head b {
+  font-size: 12.5px;
+  font-weight: 600;
+  /* 标题和说明文字都可以被挤压换行，右边的「重新探测」不行：
+     能力串写满时（Android 8.0.0 · SDK 26 · userdebug · adb 已 root）
+     会把 ↻ 挤到 31px，低于 44px 触控底线 */
+  flex: 0 0 auto;
+}
+
+.caps-head .icon-btn {
+  flex: 0 0 auto;
+}
+
+.caps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.cap {
+  display: grid;
+  /* 状态、能力名、结论排成一行：手机上也不再用「标题一行 + 说明一行」的说明书布局 */
+  grid-template-columns: auto minmax(90px, max-content) minmax(0, 1fr);
+  gap: 4px 9px;
+  align-items: center;
+}
+
+/* 三档用同一套语义：红=完全支持、描边=部分支持、灰=不支持 */
+.cap-lv {
+  flex: none;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cap-lv.full {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.cap-lv.partial {
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  color: var(--accent-ink);
+}
+
+.cap-lv.none {
+  border: 1px solid var(--line);
+  color: var(--ink-3);
+}
+
+.cap-t {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.cap-d {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+  cursor: help;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 证据折进悬停提示后给个记号：虚线下划线说明这里还有半句 */
+.cap-d.hasnote {
+  text-decoration: underline dotted;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+/* 全部支持的汇总行不挂状态徽标，所以让能力名和细节各占一列 */
+.cap-all {
+  grid-template-columns: minmax(90px, max-content) minmax(0, 1fr);
+}
+
+.procrow,
+.fsrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12.5px;
+}
+
+.procrow:last-child,
+.fsrow:last-child {
+  border-bottom: 0;
+}
+
+.procrow em {
+  font-style: normal;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+  width: 42px;
+  text-align: right;
+}
+
+.procrow b,
+.fsrow b {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.procrow span,
+.fsrow span {
+  flex: none;
+  color: var(--ink-3);
+  font-size: 11.5px;
+}
+
+.fsrow em {
+  font-style: normal;
+  flex: none;
+  width: 14px;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.fsrow.nav {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .fsrow.nav:hover b {
+    color: var(--accent-ink);
+  }
+}
+
+.fsnav select {
+  flex: 1;
+  min-width: 0;
+}
+
+#btn-fs-up {
+  flex: none;
+  width: 44px;
+  padding: 0;
+}
+
+@media (min-width: 520px) {
+  body {
+    padding: 26px 0;
+    min-height: 100vh;
+  }
+
+  .panel {
+    min-height: calc(100vh - 52px);
+    border: 1px solid var(--line);
+    border-radius: var(--r-panel);
+    box-shadow: 0 1px 2px -1px rgba(20, 24, 36, 0.06);
+    /* 这里必须是 clip 而不是 hidden：hidden 会让 .panel 变成滚动容器，
+       里面的 sticky 头尾就只能相对这块「不滚动的滚动区」粘，等于完全失效 */
+    overflow: clip;
+  }
+
+  /* 这里刻意不给 .grid 分两列：520 到 899 这一段面板宽度还锁在 420，
+     硬分两列会把每条应用压到 187px，长包名
+     （com.devolutions.remotedesktopmanager）直接被省略号吃掉。
+     分列等到面板真的变宽的 900 再说，见下面的桌面端区块 */
+  .pad-keys {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* 桌面端：面板放宽，总览页改成「左画面 / 右控制」两栏，设备预览不再被压在窄条里 */
+@media (min-width: 900px) {
+  .panel {
+    max-width: 760px;
+    /* 900 起的桌面壳统一固定到视口高度：顶部栏和状态栏各自占行，
+       只有中间内容滚动。底栏不再浮在内容上 */
+    height: calc(100vh - 52px);
+    min-height: 0;
+    overflow: clip;
+  }
+
+  main {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .p-foot {
+    position: static;
+  }
+
+  /* 面板放宽到 760 之后再分两列：每列 357px，应用名和包名都整行装得下 */
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* 宽屏把「标题栏」和「上排」并成一条 app bar。
+     手机上一条标题栏 + 一条上排还能接受；桌面上两条通栏横条叠在一起
+     就是两条菜单带，顶部固定吃掉 130px，内容一屏少一截。
+     合并后宽屏顶部只有一条（68px），省下的 62px 全给内容。
+     .p-head 用 display: contents 拆掉自己的盒子，让 .p-id / .p-acts
+     直接排进 .p-top，再用 order 摆成「设备 → 上排 → 操作组」，
+     DOM 与手机上那份保持同一套，只有排布不一样 */
+  .p-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    /* 必须高于抽屉遮罩（.sheet，z-index 60）：抽屉开着时上排菜单也要能点，
+       点别的菜单就是「切页 + 关抽屉」，否则点击会被蒙层吃掉 */
+    z-index: 70;
+    padding: 9px 16px;
+    background: color-mix(in srgb, var(--panel) 88%, transparent);
+    backdrop-filter: blur(14px) saturate(160%);
+  }
+
+  .p-head {
+    display: contents;
+  }
+
+  .p-id {
+    order: 1;
+    flex: 0 1 auto;
+  }
+
+  /* 上排只按内容宽占位，不再跟着窗口拉伸。
+     原来是 flex:1 1 auto：窗口一宽，五格就各摊到 130px 往上，
+     整条 app bar 从「一条导航」变成「一排菜单」。
+     不伸之后，余量交给左右两侧的 auto 边距平分：上排落在 app bar 中间，
+     和设备身份、操作组各留一段呼吸位，三段各自成组。
+     900 到 1180 这一段余量本来只有几十像素，上排位置跟以前几乎一样 */
+  .tabs {
+    order: 2;
+    flex: 0 0 auto;
+    margin: 0 auto;
+    padding: 2px;
+    border-radius: 13px;
+  }
+
+  /* 上排左右已经各留了一份 auto 边距来居中，这里不能再抢一次余量，
+     否则三份 auto 边距一分，上排会被顶得偏右 */
+  .p-acts {
+    order: 3;
+    flex: none;
+    margin-left: 0;
+    padding: 1px;
+  }
+
+  /* 并进 app bar 之后上排不再是独占一条的主角，48px 收到 44px 与两侧对齐 */
+  .tab {
+    height: 44px;
+    border-radius: 11px;
+  }
+
+  /* 面板自己的二级分段（信息 / 进程 / 文件…）在宽屏不再整条铺满：
+     六格各摊到 166px，就是第二条通栏横条，和 app bar 打架，看着又是一排菜单。
+     收成贴合内容的胶囊，主次立刻分得开 —— 上面是主导航，下面是这一页的子视图。
+     只作用于面板直属的那几个分段，详情卡里的「外观」三档和脚本编辑里的触发方式不动 */
+  .pane > .seg {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .pane > .seg button {
+    flex: 0 0 auto;
+    padding: 0 18px;
+  }
+
+  /* 面板放宽之后，「重新读取」「读取桌面候选」这些顶着 .grow 的按钮会跟着摊到
+     八九百像素，一行里就它一个像条横幅。窄屏没这个毛病，是因为面板本来只有 420。
+     这里给按钮封一个上限：一行里就一两个按钮时它不再无限长大，
+     而控制页那种「静音 / 电源 / 唤醒」三颗平分一行的排法照样成立
+     （560 的面板一行分下来每颗 175，本来就在上限之内）。
+     输入框和下拉不设上限，搜索框仍然吃满剩下的宽度 */
+  .row > button.grow,
+  .row > label.grow {
+    max-width: 240px;
+  }
+
+  .pane[data-pane='home'].on {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 18px;
+  }
+
+  .pane[data-pane='home'] .device-brief,
+  .pane[data-pane='home'] .home-connect {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  /* 设备身份条横跨整行；画面与控制从第二行各占一列 */
+  .pane[data-pane='home'] .hcol-a {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .pane[data-pane='home'] .hcol-b {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+  }
+
+  /* 控制页是纵向手机构图，铺满 760px 会把手感拉散，居中收窄 */
+  .pane[data-pane='pad'] {
+    width: 100%;
+    max-width: 560px;
+    margin-inline: auto;
+  }
+
+  .pic {
+    max-height: 280px;
+  }
+
+  #log {
+    max-width: 720px;
+  }
+
+  .sheet-head,
+  .sheet-body {
+    max-width: 720px;
+  }
+
+  /* 更多抽屉在宽屏收成中间一张卡：卡片还是 440px 两列，跟手机上同一套排布。
+     试过宽屏排 3 列，一格只剩 130px，「启动项、默认桌面与开机自启」全被截成省略号，
+     反而比两列难认；网格不跟着屏幕无限变宽，说明才排得下。
+     操作日志仍是 720px —— 那一页一行本来就长，摊宽反而好读 */
+  #moresheet {
+    align-content: center;
+    padding: 24px;
+  }
+
+  #moresheet .sheet-head,
+  #moresheet .sheet-body {
+    max-width: 440px;
+  }
+
+  #moresheet .sheet-head {
+    border-radius: 20px 20px 0 0;
+    border-bottom: 0;
+  }
+
+  #moresheet .sheet-body {
+    border-radius: 0 0 20px 20px;
+  }
+}
+
+/* 超宽屏：760px 的面板在 1920 的窗口里两侧各空 580px，看着像把手机竖屏摆进显示器。
+   1180 起面板放到 1216，总览页那台设备画面才真的撑得开。
+   再宽不继续放：一行文本超过 1100px 之后阅读要开始甩头，抽屉、日志那些内层
+   自己也都有各自的上限，面板只负责把外框撑到够用 */
+@media (min-width: 1180px) {
+  /* 面板从这一档起加宽（宽度上限在下面那块里给），
+     总览页左栏设备画面跟着长高，右栏只有音量 + 常用应用两张卡，一长一短像没排完。
+     1180 起换成「大画面 + 右侧控制栏」：画面独占左栏，音量 / 常用应用
+     按顺序收进 320 到 360 的右栏。
+     900 到 1179 面板还只有 760，所以那段也维持原样 */
+  .pane[data-pane='home'].on {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+    /* 右栏按内容高靠上排。第四十四批之前是让右栏跟着左栏一起长，
+       多出来的高度被平摊进卡片内部：1912 下「音量」「常用应用」两张卡
+       底部各自空掉九十多像素，看着像内容没画完。现在余量留在列尾，
+       卡片各按自身高度收口，列尾那点留白跟面板底边齐平，不再是卡里的空洞 */
+    align-items: start;
+  }
+
+  .pane[data-pane='home'] .device-brief,
+  .pane[data-pane='home'] .home-connect {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .pane[data-pane='home'] .hcol-a {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  /* 三张卡之间的缝跟「左栏到右栏」那条一样宽，不再一处 11 一处 18 */
+  .pane[data-pane='home'] .hcol-b {
+    grid-column: 2;
+    grid-row: 2;
+    gap: 18px;
+  }
+
+}
+
+/* 宽屏（1180 起）面板从 1040 抬到 1216：窗口够宽时名单、长包名都不再省略。
+   第三十九批之前，这一档还顺手把上排换成了左侧竖栏（10 项全露）。
+   现在上排在任何宽度都不换形态，左栏吃掉的那 164px 也一并还给内容列 */
+@media (min-width: 1180px) {
+  .panel {
+    max-width: 1216px;
+  }
+
+  .tv {
+    --preview-maxh: min(72vh, 680px);
+  }
+
+  /* 宽屏把控制页摊成三栏：方向与媒体、触控板与功能键、键盘输入与手势。
+     两段中间布局会让右栏只剩五百多像素高，整页右侧空掉一大片；
+     三栏让每列高度接近，1440 下也不再需要往下滚 */
+  .pane[data-pane='pad'].on {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 18px 24px;
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  .pane[data-pane='pad'] > .control-intro {
+    grid-column: 1 / -1;
+  }
+
+  .pane[data-pane='pad'] > .pad-main {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 24px;
+    grid-column: 1 / span 2;
+    align-items: stretch;
+  }
+
+  /* 实体按键控制台横跨两列，别挤在触控板或键盘下面 */
+  .pane[data-pane='pad'] .key-console {
+    grid-column: 1 / -1;
+  }
+
+  /* 右列从 1180 起按内容自上而下排，卡片各按自身高度收口 */
+  .pane[data-pane='pad'] > .pad-side {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    /* 三张卡按内容高度自上而下排；最后一张折叠卡不吸收整列余高，
+       展开颜色键时只长它自己，不会在卡片底部留一大块空白 */
+    align-content: start;
+    grid-auto-rows: auto;
+    gap: 14px;
+    justify-items: stretch;
+    grid-column: 3;
+    height: 100%;
+  }
+
+  .pane[data-pane='pad'] > .pad-side > .fold {
+    min-height: 0;
+  }
+
+  /* 三列内容都比面板矮，直接顶在上沿会留下一条很长的底部空带。
+     这里把控制页的网格行撑满，并让整组内容在剩余空间里垂直居中；
+     内容本身不拉伸，按钮尺寸保持不变 */
+  .pane[data-pane='pad'].on {
+    align-content: center;
+    min-height: 100%;
+    justify-content: center;
+  }
+
+  .pane[data-pane='pad'] > .pad-main,
+  .pane[data-pane='pad'] > .pad-side {
+    align-self: center;
+  }
+
+  /* 两列等高后，把多余的竖向空间给触控板，而不是让左侧按键列底下空着。
+     触控板本身是拖拽区，放大只会更好按 */
+  .pane[data-pane='pad'] .pad-col-touch {
+    height: 100%;
+  }
+
+  .pane[data-pane='pad'] .pad-col-touch .touchpad-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pane[data-pane='pad'] .pad-col-touch .touchpad {
+    flex: 1;
+    min-height: 220px;
+  }
+
+  .pane[data-pane='pad'] > .pad-side > .card {
+    margin: 0;
+  }
+}
+
+/* 宽屏让面板跟着窗口一起长。上面那块给的 1216 是「够用」的下限，不是上限：
+   窗口只有 1440 时它正好，到了 1920 还是 1216，左右就各空 240，
+   总览页设备预览只有 636 宽，下面再空出四百多像素，像一块没排满的白板。
+   这里改成随窗口走：左右先各留 160，长到 1440 封顶（正文行宽不能再长，
+   卡片里的说明文字会拉成一条长线）。1920 上得到 1440 的面板、
+   860 宽的画面预览，底部那块空白也跟着收掉大半。
+   门槛取 1440 而不是 1600：clamp 的下限正好是 1216，1536 之前算出来都比 1216 小、
+   被下限接住，所以 1440 起启用和 1600 起启用在前半段完全等价，
+   但 1536 到 1599 这段能匀着长，不用在 1600 那里一次跳 64px */
+@media (min-width: 1440px) {
+  .panel {
+    max-width: clamp(1216px, calc(100% - 320px), 1440px);
+  }
+}
+
+/* APK 解出的真实图标：尺寸写死成容器内框（grid 居中时百分比会塌成 0×0），缺图时 JS 退回首字母 */
+.tile .ico img,
+.appbtn .mono img,
+.initem .ico img {
+  display: block;
+  object-fit: contain;
+  border-radius: inherit;
+}
+
+.tile .ico img {
+  width: 46px;
+  height: 46px;
+}
+
+.appbtn .mono img {
+  width: 30px;
+  height: 30px;
+}
+
+.initem .ico img {
+  width: 32px;
+  height: 32px;
+}
+
+/* 屏幕时间摘要：三个关键数字先给结论，明细条形往下放 */
+.statrow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.stat-k {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.stat-v {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .stat-v {
+    font-size: 15px;
+  }
+}
+
+
+/* ---- 全屏可操作性：鼠标点按在「哪里能点、为什么没反应」上不能含糊 ---- */
+
+/* 等待层整块盖在画面上：它自己不吃点击，否则全屏里的点按全被这层拦掉，
+   只剩「点了没反应」；里面的按钮再单独放行 */
+.tv-idle {
+  pointer-events: none;
+}
+
+.tv-idle .tv-cta {
+  pointer-events: auto;
+}
+
+/* 能点按时光标给十字，鼠标用户不用猜这里是不是按钮 */
+.tv-screen.tappable {
+  cursor: crosshair;
+}
+
+.fs-sub {
+  display: block;
+  color: var(--ink);
+}
+
+/* 提示条里的点按开关：父层是 pointer-events:none，它必须自己放行 */
+.fstap {
+  pointer-events: auto;
+  margin-top: 4px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.fstap.on {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.fs-tail {
+  display: block;
+  color: var(--ink-3);
+}
+
+.fs-tail .fs-hint-go {
+  margin-left: 0;
+}
+
+/* 点按被拦下的原因写在提示条里，不能只靠控制台日志 */
+.fspeak {
+  display: block;
+  color: var(--accent-ink);
+}
+
+.fspeak.err {
+  color: var(--err);
+}
+
+.tv-ripple.blocked {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tv-ripple.err {
+  border-color: var(--err);
+  background: rgba(255, 107, 98, 0.18);
+}
+
+/* 点在黑边上时把真正能点的区域闪一圈：比一句「点在画面外」直观 */
+.tv-picflash {
+  position: absolute;
+  z-index: 3;
+  border: 2px solid var(--accent-ink);
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  animation: tv-picflash 900ms ease-out forwards;
+}
+
+@keyframes tv-picflash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-picflash {
+    animation-duration: 260ms;
+  }
+}
+
+
+/* ---- 键盘控制是隐藏能力：控制页上给一条常驻提示，触屏设备不显示 ---- */
+
+.kbdhint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: -4px 0 14px;
+  color: var(--ink-3);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.kbdhint kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--ink-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.kbdhint b {
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.kbdhint-t {
+  display: inline-flex;
+  gap: 4px;
+  cursor: help;
+}
+
+.kbdhint-fold > .kbdhint,
+.inote > .kbdhint {
+  margin: 0;
+}
+
+/* 没有物理键盘的设备（手机、平板触屏）不摆这条 */
+@media (hover: none) and (pointer: coarse) {
+  .kbdhint-fold {
+    display: none;
+  }
+  .pad-notes .inote .kbdhint {
+    display: none;
+  }
+}
+
+/* ---- 全屏「可点区域」框：16:9 画面在窄窗口里只占中间一条，
+   一圈虚线告诉用户黑边不是画面、点黑边不会发到设备 ---- */
+.tv-picframe {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  border: 1px dashed rgba(232, 50, 60, 0.62);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+.tv-picframe-tag {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -50%);
+  display: none;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: rgba(9, 9, 11, 0.8);
+  border: 1px solid rgba(232, 50, 60, 0.45);
+  color: #ff8f86;
+  font-size: 11.5px;
+  font-style: normal;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.tv-picframe.tagy .tv-picframe-tag {
+  display: block;
+}
+
+/* 画面很窄时角标会顶出边框，窄面板里改成贴左显示 */
+@media (max-width: 420px) {
+  .tv-picframe-tag {
+    left: 0;
+    transform: translate(4px, -50%);
+  }
+}
+
+
+/* ---- 点按即时回执：气泡贴在落点旁边 ----
+   提示条只在全屏里常驻，非全屏点了只闪一圈涟漪，
+   鼠标用户很容易判成「点了没反应」，所以回执必须出现在鼠标/手指的位置 */
+.tv-note {
+  position: absolute;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(9, 9, 11, 0.88);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: tv-note 1.9s ease-out forwards;
+}
+
+.tv-note.ok {
+  border-color: rgba(96, 202, 132, 0.72);
+  color: #7ddc9a;
+}
+
+.tv-note.blocked {
+  border-color: rgba(255, 255, 255, 0.26);
+  color: var(--ink-2);
+}
+
+.tv-note.err {
+  border-color: var(--err);
+  color: var(--err);
+}
+
+@keyframes tv-note {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-note {
+    animation-duration: 1.4s;
+  }
+}
+
+/* 服务器上的 app.js 变了就先把「刷新」摆出来，别让用户对着旧页面找问题。
+   居底居中，不缩在左下角：那个位置正压着底栏的连接状态，几次都没被看见。
+   抬到底栏之上（底栏 44 高 + 14 留白）：压在底栏上会被那层毛玻璃洗成浅粉，
+   右边那串序列号也会被盖住半截。
+   居中用 left/right + margin auto，不用 transform，免得跟入场动画抢 transform
+   （动画也换成自己这条：tv-note 的位移是按居中浮层写的，套过来会先跳到屏幕左上） */
+.stale {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(58px + env(safe-area-inset-bottom));
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  margin: 0 auto;
+  z-index: 60;
+  /* 44 而不是 40：这颗按钮经常是在触屏/手机上点的，跟别处的触控底线保持一致。
+     多出来的 4px 是浮层，不会挤掉下面任何一行内容 */
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  animation:
+    tv-stale 0.32s cubic-bezier(0.2, 0.8, 0.2, 1),
+    tv-stale-ring 3.2s ease-out 1s infinite;
+}
+
+@keyframes tv-stale {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 这个按钮曾经在屏幕下沿挂了大半天没人看见：给它一点「会呼吸」的提示，
+   只呼吸外圈光晕，不动位置、不闪亮度，3.2 秒一圈，幅度压在 8px 以内，
+   眼角扫得到就够了，不跟设备画面抢注意力 */
+@keyframes tv-stale-ring {
+  0%,
+  70%,
+  100% {
+    box-shadow:
+      0 10px 24px rgba(0, 0, 0, 0.3),
+      0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  35% {
+    box-shadow:
+      0 10px 24px rgba(0, 0, 0, 0.3),
+      0 0 0 8px transparent;
+  }
+}
+
+.stale:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stale {
+    animation: none;
+  }
+}
+
+/* ---- 设备健康：占用条 + 读数格 ---- */
+
+/* 每根条自己带标签和数值，不用去别处对表；三根条在宽屏并排、窄屏竖排，
+   长清单页里这是唯一一块「一眼看完」的区域 */
+/* 每根条自己是一张卡，而不是「共用一个带分隔线的容器」：
+   auto-fit 换列之后，行与行的分隔线该画在哪完全取决于断点，画不准不如不画 */
+.hgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* 采样失败时读数不清空，只在标题旁标出「这是上次成功读数」。
+   颜色用低饱和告警色，避免和真正的危险值抢注意力。 */
+#healthsum.stale {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.hrow {
+  display: grid;
+  gap: 8px;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.hmain {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hmain b {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.hmain em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: normal;
+  font-size: 12px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.hbadge {
+  flex: none;
+  margin-right: auto;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+.hbadge.ok {
+  color: #1a7f37;
+  background: rgba(34, 154, 22, 0.12);
+}
+
+.hbadge.warn {
+  color: #9a6700;
+  background: rgba(210, 153, 34, 0.16);
+}
+
+.hbadge.critical {
+  color: #c0392b;
+  background: rgba(203, 36, 49, 0.12);
+}
+
+[data-theme='dark'] .hbadge.ok {
+  color: #57d9a3;
+  background: rgba(35, 134, 54, 0.22);
+}
+
+[data-theme='dark'] .hbadge.warn {
+  color: #e3b341;
+  background: rgba(187, 128, 9, 0.24);
+}
+
+[data-theme='dark'] .hbadge.critical {
+  color: #ff8182;
+  background: rgba(218, 54, 51, 0.2);
+}
+
+.hsub {
+  display: block;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+
+.htrack {
+  position: relative;
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.htrack > b {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 4px;
+  background: var(--ink-3);
+  transition: width 0.35s ease;
+}
+
+/* 占用档位决定颜色：正常绿、偏高橙、过高红，和徽标同一套阈值。
+   快照用 critical、健康子页用 hot，两者语义相同（顶到上限），共用一条规则，
+   避免两个页面同一个数字显示成两种颜色 */
+.htrack > b.ok {
+  background: var(--ok);
+}
+
+.htrack > b.warn {
+  background: var(--warn);
+}
+
+/* 占用已经顶到上限：仍用告警红，但不再是品牌描边色。
+   红色在这里的语义是「该处理了」，不是「可点击的强调色」 */
+.htrack > b.hot,
+.htrack > b.critical {
+  background: var(--err);
+}
+
+
+
+
+
+
+
+
+
+/* 采样回来的短促微光：CPU/磁盘没有可连续推算的实时来源，
+   用一次一秒的高亮表达「刚刷新过」，而不是硬编中间值装实时 */
+.htrack > b.micro {
+  animation: htrack-micro 1s ease-out 1;
+}
+
+@keyframes htrack-micro {
+  0% {
+    filter: brightness(1.45);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+/* 某一项的值真的变了才闪一下：一秒内淡入淡出，不常驻颜色 */
+.hrow.flash {
+  animation: hrow-flash 1s ease-out 1;
+}
+
+@keyframes hrow-flash {
+  0% {
+    border-color: color-mix(in srgb, var(--accent) 46%, transparent);
+    background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  }
+  100% {
+    border-color: var(--line);
+    background: var(--card);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hrow.flash {
+    animation: none;
+  }
+}
+
+.hfoot {
+  margin-top: 10px;
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.hfoot.statrow {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+/* 这几格宽度不定（负载那一格要放三个数字、温度只有一个），
+   固定三列会把长的那格挤成省略号，所以按内容宽度自动排 */
+.hfoot.statrow {
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 12px;
+}
+
+
+#homesnap .hrow {
+  padding: 8px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+#homesnap .hrow + .hrow {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+/* 快照改成一行一条指标的读数：指标名、状态色横条、主数值和语境说明都放一起。
+   进度条本身报状态，不再让人对着几条孤零零的横条猜含义 */
+#homesnap .snapgrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 9px;
+}
+
+#homesnap .snapstat {
+  display: grid;
+  gap: 3px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--card-2);
+}
+
+/* 指标标题先报清「这是什么、现在怎么样」；细说明和横条读数放在下面 */
+#homesnap .snap-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+#homesnap .snap-title {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+
+/* 徽标色是进度条语义的文字版：正常 / 偏高 / 过高，
+   和底部热力色（绿转橙转红）保持同一套阈值 */
+#homesnap .snap-badge {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+/* 无读数徽标：中性灰，明确区别于「正常」绿，避免空值看起来像好消息 */
+#homesnap .snap-badge.nodata {
+  color: var(--ink-3);
+  background: color-mix(in srgb, var(--ink-3) 14%, transparent);
+}
+
+/* 读数跟着指标名同一行右对齐：标题说「是什么」，右侧数字说「现在多少」，
+   下面整行横条只负责比例，用户不用在名字和杠之间来回找对应关系 */
+#homesnap .snap-v {
+  flex: none;
+  margin-left: auto;
+  font-size: 14.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+#homesnap .snap-v.nodata {
+  font-size: 12.5px;
+  font-weight: 560;
+  color: var(--ink-3);
+}
+
+#homesnap .snap-sub {
+  font-size: 10.8px;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+
+/* 横条拉满整卡宽度并加高：条上刻 75% / 90% 两条告警线，
+   一眼就能看出「离告警还有多远」，不再需要猜一根光杠代表什么 */
+/* 正常 / 偏高 / 过高：横条颜色保持与徽标一致，条上加告警线 */
+/* 轨道统一用半透明灰条，主题色差通过填充段（fill）体现 */
+#homesnap .snap-track {
+  position: relative;
+  display: block;
+  height: 10px;
+  margin-top: 2px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--ink-3) 12%, transparent);
+}
+
+
+/* CPU 只有 4% 这种读数时横条短得像一个小点，
+   给填充段留最小可见宽度，用户能明确看到「这里有一条很低的占用」 */
+#homesnap .snap-track b {
+  min-width: 9px;
+  border-radius: inherit;
+}
+
+/* 读不到数值时保留整条轨道并画斜纹：位置不消失，也不会被误读成「占满了」 */
+#homesnap .snapstat.is-nodata .snap-track {
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ink-3) 22%, transparent) 0 5px,
+    transparent 5px 10px
+  );
+}
+
+#homesnap .snap-track b.nodata {
+  min-width: 0;
+}
+
+/* 告警刻度线：总览快照和健康子页共用同一条轨道语义，
+   75% / 90% 两道竖线让「离告警还有多远」不用用户自己估算 */
+.htrack u {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--ink-2) 45%, transparent);
+  pointer-events: none;
+}
+
+#homesnap .snapstat.is-nodata {
+  background: color-mix(in srgb, var(--card-2) 70%, transparent);
+}
+
+#homesnap .snapstatus {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  gap: 4px 14px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+
+/* 快照首行摘要：不用看图例就能知道当前整体状态，
+   颜色复用徽标阈值，语义和下面的指标卡保持一致 */
+#homesnap .snap-sum {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 1px 0 9px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card-2);
+  font-size: 12px;
+  font-weight: 620;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+#homesnap .snap-sum.ok {
+  color: #14712f;
+}
+
+#homesnap .snap-sum.warn {
+  color: #8a5f00;
+}
+
+#homesnap .snap-sum.critical {
+  color: #c0392b;
+}
+
+[data-theme='dark'] #homesnap .snap-sum.ok {
+  color: #4fd49a;
+}
+
+[data-theme='dark'] #homesnap .snap-sum.warn {
+  color: #e3b341;
+}
+
+[data-theme='dark'] #homesnap .snap-sum.critical {
+  color: #ff8182;
+}
+
+/* 迷你趋势贴在每条指标下面：同样很小，不会把快照撑高。
+   内存和存储本来就是缓慢爬坡，单看当前值发现不了；
+   这条线负责回答「比刚才更重了吗」 */
+#homesnap .snap-trend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+/* 走势线刻意比占用条细很多，并加一条虚线基线：
+让「曲线」和「进度条」在形状上不再混淆 */
+#homesnap .snap-trend svg {
+  width: 78px;
+  height: 17px;
+  stroke: color-mix(in srgb, var(--ink-2) 72%, transparent);
+  stroke-width: 1.6;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}
+
+#homesnap .snap-trend .trend-base {
+  stroke: color-mix(in srgb, var(--ink-3) 40%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+#homesnap .snap-trend span {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+/* 采样未满 3 点时留一行空位，既不显示「采样中」也不画半截线；
+   高度保持住，曲线到位时下面的卡片不会被顶下去 */
+#homesnap .snap-trend.pending {
+  min-height: 17px;
+}
+
+[data-theme='dark'] #homesnap .snap-trend svg {
+  stroke: color-mix(in srgb, var(--ink-2) 86%, transparent);
+}
+
+/* 320px 极窄机身：图标和名称占第一行，说明横跨整格第二行。
+   原来说明只分到图标右侧那 78px，「局域网扫描」这类词必被截断；
+   横过来后宽度翻倍，四行磁贴仍能收在底栏上方 */
+@media (max-width: 360px) {
+  #moresheet .sheet-head .muted {
+    display: none;
+  }
+
+  #moresheet .mtile {
+    min-height: 58px;
+    padding: 8px 9px;
+    column-gap: 8px;
+  }
+
+  #moresheet .mtile-ic {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* 指标改成整行后，窄视口只收一点内距和说明缩进，不再切两列：
+   单列能保证每条杠都有完整长度和名字 */
+@media (max-width: 520px) {
+  #homesnap .snapstat {
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+
+  #homesnap .snap-v {
+    font-size: 13.8px;
+  }
+
+  #homesnap .snap-sub {
+    font-size: 10.5px;
+  }
+}
+
+[data-theme='dark'] .htrack u {
+  background: color-mix(in srgb, var(--ink-2) 55%, transparent);
+}
+
+.recctl button {
+  min-height: 44px;
+  padding: 0 18px;
+  /* 全局 button 被重置成 background:none; border:0，
+     外观靠 .row button 之类的上下文补。录屏这排控件不在 .row 里，
+     不补就跟正文一样是裸文字，看着像说明而不像按钮 */
+  border-radius: var(--r-ctl);
+  background: var(--card);
+  border: 1px solid var(--line);
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .recctl button:hover {
+    background: var(--card-2);
+  }
+}
+
+/* 空录像列表：.list 只有边框和左右内距，里面单放一行 caption 时高度塌成一条细线，
+   像分隔线而不像「这里是空列表」。给空态一点垂直呼吸 */
+#reclist.is-empty {
+  min-height: 72px;
+  padding: 14px 12px;
+}
+
+/* 录制中：按钮本身在走倒计时，给它一条从左到右退掉的进度，鼠标用户也能看懂还剩多久 */
+.recctl button.rec-on {
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+  color: var(--on-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.recrow {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.recrow:last-child {
+  border-bottom: 0;
+}
+
+.rechead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rechead b {
+  font-size: 12.5px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rechead em {
+  flex: none;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.recrow video {
+  width: 100%;
+  max-height: 300px;
+  border-radius: 11px;
+  background: #000;
+}
+
+.recacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recacts button,
+.recacts a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 12.5px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .recacts button:hover,
+  .recacts a:hover {
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+}
+
+.recacts button.danger {
+  color: var(--err);
+}
+
+/* ---- 电源动作：设备页信息栏底部 ---- */
+
+/* 四个按钮的宽度差得远（「重启」两个字 vs「重启到 Bootloader」），
+   所以按内容排、窄屏自动换行，不去强行等分 */
+.powerrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ---- 健康趋势曲线 ---- */
+
+/* 和健康卡同一套排布：宽屏并排，窄屏竖排 */
+.sparkgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(186px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sparkcard {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 2px 10px;
+  padding: 10px 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  transition: border-color 0.4s ease;
+}
+
+.spark-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sparkcard b {
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spark-count {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 最新一拍比上一拍高了或低了，就在卡名旁给一个短促方向符：
+   读数没变就隐藏，避免整屏都是无意义的箭头 */
+.spark-chip {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  flex: none;
+  font-size: 10px;
+  line-height: 1;
+  font-style: normal;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent-ink);
+  animation: spark-chip-in 0.35s ease-out 1;
+}
+
+.spark-chip[hidden] {
+  display: none;
+}
+
+@keyframes spark-chip-in {
+  from {
+    transform: translateY(2px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spark-chip {
+    animation: none;
+  }
+}
+
+.sparkcard em {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+}
+
+.sparkcard em {
+  font-style: normal;
+  font-size: 13px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.sparkline {
+  grid-column: 1 / -1;
+  display: block;
+  width: 100%;
+  height: 34px;
+  overflow: visible;
+}
+
+/* 只采到一拍的趋势卡：折线区是空的，整幅 34px 高度只会让手机上一屏全是
+   「一个点 + 大片空白」，看起来像图坏了。这里收起曲线，卡片并排两列，
+   把首屏留给真正有信息的读数；「几拍起连成曲线」统一写在上方那行说明里 */
+.sparkcard.is-early .sparkline {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .sparkcard.is-early {
+    padding: 8px 10px 7px;
+  }
+
+  .sparkgrid:has(.sparkcard.is-early) {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 6px;
+  }
+}
+
+
+/* 末点常亮，配呼吸动画表达「采样还活着」；历史点用实心小点标出每次采样位置 */
+.spark-dot {
+  fill: var(--accent);
+  animation: spark-pulse 2.4s ease-in-out infinite;
+}
+
+.spark-dot-plain {
+  fill: color-mix(in srgb, var(--accent) 45%, transparent);
+  animation: none;
+}
+
+@keyframes spark-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spark-dot {
+    animation: none;
+  }
+}
+
+/* 读数几乎没动时给一个视觉提示：数字略淡化，不是图坏了 */
+.sparkcard em.spark-flat {
+  color: var(--ink-3);
+}
+
+/* preserveAspectRatio="none" 会把画布横向拉长，描边也会跟着被拉粗，
+   所以用 non-scaling-stroke 把线宽锁死在 1.6px */
+.spark-path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sparkline.pulse {
+  animation: spark-line-pulse 1s ease-out 1;
+}
+
+@keyframes spark-line-pulse {
+  0% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sparkline.pulse {
+    animation: none;
+  }
+}
+
+.sparkcard.pulse {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--line));
+}
+
+.spark-area {
+  fill: var(--accent-soft);
+  stroke: none;
+}
+
+/* ---- 录像库工具条 ---- */
+
+.rectools {
+  margin-top: 10px;
+}
+
+.rectools .muted {
+  font-size: 12px;
+}
+
+.rectools button.danger {
+  color: var(--err);
+  border-color: color-mix(in srgb, var(--err) 34%, transparent);
+}
+
+/* 刚录完那一条：左边缘一条实心色 + 极淡底色。
+   列表本来就按时间倒序，这条在最上面，标一下才认得出是哪一段 */
+.recrow.fresh {
+  position: relative;
+  margin: 0 -10px;
+  padding: 12px 10px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+}
+
+.recrow.fresh::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+/* ---- 录制进度条 ---- */
+/* 录制是后台任务，这条进度读的是服务端 job 的阶段与百分比，不靠页面自己数秒。
+   轨道走极淡的线色，进度块用强调色，拉回阶段停在 99% 只换文字 —— 
+   拉回没法读中途进度，硬编一个数字反而在骗人 */
+.recprog {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.recbar {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.recbar > i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.recproglabel {
+  font-size: 12px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.recprog.err .recbar > i {
+  background: var(--err);
+}
+
+.recprog.err .recproglabel {
+  color: var(--err);
+}
+
+/* ---- 录像勾选 ---- */
+/* 勾选框本体很小，外面包一层 44px 的点击区，手指才点得准；
+   负外边距把这层点击区塞回文字行里，不额外撑高每一行 */
+.rechead {
+  align-items: center;
+}
+
+.rechead b {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.recpick {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -12px 0 -12px -12px;
+}
+
+.recpick input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.checkline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding-right: 4px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.checkline input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+/* ---- 设备日志：logcat 快照 ---- */
+
+/* 一屏几百行是常态，所以行距压得比别处紧，靠左边那条等级竖条来分块，不靠卡片和留白。
+   等级只在竖条与等级字母上着色，正文保持中性色 —— 整行染红会让长堆栈几乎没法读 */
+.logrow {
+  position: relative;
+  display: grid;
+  gap: 3px;
+  /* .list 是 flex 纵向容器，且 .list.tall 有 max-height：日志动辄几百行，
+     不锁住 flex 尺寸的话每行会被按比例压扁，行高和展开判定都会失真 */
+  flex: none;
+  padding: 8px 0 8px 11px;
+  border-bottom: 1px solid var(--line);
+}
+
+.logrow:last-child {
+  border-bottom: 0;
+}
+
+/* 等级竖条：默认是极淡的中性色，只有 E/F 和 W 才上色，一眼扫得出来哪几行是问题 */
+.logrow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--line);
+}
+
+.logrow.is-err::before {
+  background: var(--err);
+}
+
+.logrow.is-warn::before {
+  background: var(--warn);
+}
+
+.loghead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  /* 右侧两格留白：外格（0~44px）是展开三角，内格（44~88px）是收藏星标。
+     两格都常驻，不跟着"这行有没有三角/有没有星"走 —— 留白一变，同一批日志里的
+     星标就会左右乱跳，扫一列星等于在找锯齿。
+     留白必须真的等于两个按钮的宽度：少一像素，星标就会压在 pid 上
+     （实测过只留 24px 的时候，展开态下 #4102 有两位被盖住） */
+  padding-right: 88px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.loglv {
+  flex: none;
+  width: 10px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.logrow.is-err .loglv {
+  color: var(--err);
+}
+
+.logrow.is-warn .loglv {
+  color: var(--warn);
+}
+
+.logtime {
+  flex: none;
+  font-style: normal;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 标签吃掉中间的可伸缩空间：长包名标签只截断标签，不把 pid 挤掉。
+   它同时是个按钮（点一下＝只看这个标签），所以按钮那套默认外观要全部清掉，
+   让它看起来还是行里的等宽小字，只是多了一条能点的暗示 */
+.logtag {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* pid 和标签一样是个按钮（点一下＝只看这个 pid），所以按钮那套默认外观要全部清掉，
+   让它看起来还是行里的等宽小字，只是多了一条能点的暗示。
+   它不参与伸缩（flex:none）：标签再长被截断，pid 也必须原地不动 ——
+   排查时最常记的就是这个数字，被挤走等于把它藏了 */
+.logpid {
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.logmsg {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  /* 默认折 3 行：异常堆栈能有几十行，整段铺开会把整个列表刷没。
+     这里用 max-height 而不是 -webkit-line-clamp：后者要配 display:-webkit-box，
+     而那套老 display 值在新版 Chrome 上算出来的盒子已经不是行盒了，
+     裁剪会失效（实测折叠全丢、整段铺开）。4.5em = 3 行 × 1.5 行高，折算不依赖单位 */
+  max-height: 4.5em;
+  overflow: hidden;
+}
+
+/* 筛中的关键词给一层底色。这里刻意不用 <mark> 的浏览器默认黄底：
+   黄在本项目的「红＝强调 / 灰＝中性」体系里没有位置，深色主题下默认黄底还会发刺。
+   改走 accent 派生的一层淡底 + 强调文字色，语义是「这是你刚搜的词」；
+   它和左侧那条等级色条互不抢戏 —— 色条是「这条日志多严重」，这里是「你搜的东西在哪」 */
+.loghit {
+  padding: 0 1px;
+  border-radius: 3px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+/* 只有真的多行消息才挂展开（见 logRow），单行短消息点开没有任何变化 */
+.logrow.expandable {
+  cursor: pointer;
+  min-height: 44px;
+}
+
+/* 被折起来的行给个小三角：不然正文断在半句话上，用户不知道还有下文；
+   展开后翻个方向，表示点一下能收回去。
+   三角做成了真按钮（键盘/读屏要一个能聚焦的控件），但它是绝对定位的：
+   不占 head 的排版空间（那一格留白在 .loghead 上统一预留），标签和 pid 的宽度一点都不会被它挤掉；
+   44×44 是触控目标尺寸。
+   它和收藏星标共用右边那两格留白里的外格，见 .loghead 与 .logmark */
+.logtoggle {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  display: grid;
+  /* 箭头贴在盒子左缘（也就是紧接 pid 后面），而不是居中：
+     居中会让 pid 和箭头之间空出 20px，看起来像两个不相干的元素。
+     贴在左缘后，「#4102 ▾」仍是一句话，而盒子的其余部分还是可点的 */
+  justify-items: start;
+  align-items: start;
+  width: 44px;
+  height: 44px;
+  padding: 5px 0 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink-3);
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 字形自己带一圈内边距：hover 时把它染成一小块底，比把 44×44 的整盒涂灰好看得多。
+   整盒涂灰会在每行右边砸出一个大方块，列表里全是方块反而盖过了日志正文 */
+.logtoggle::before {
+  content: '▾';
+  padding: 1px 4px;
+  border-radius: 6px;
+}
+
+.logrow.open .logtoggle::before {
+  content: '▴';
+}
+
+/* 收藏星标：和展开三角同一套做法 —— 真按钮、绝对定位在右边留白的内格里、
+   44×44 触控目标、平时是极淡的灰字。它常驻显示（不靠 hover 才现身）：
+   触屏设备上根本没有 hover，靠悬停才能出现的星标等于永远收藏不了第一行。
+   点了之后变实心红：红是本项目的"强调"色，和"红＝出错"的 err 不是一回事，
+   这里的语义是"我自己做的记号" */
+.logmark {
+  position: absolute;
+  top: 4px;
+  right: 44px;
+  display: grid;
+  justify-items: start;
+  align-items: start;
+  width: 44px;
+  height: 44px;
+  padding: 5px 0 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink-3);
+  /* 比三角大一号：☆ 的字身比 ▾ 小，同样的字号下看起来只有一半大 */
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.logmark::before {
+  content: '☆';
+  padding: 0 4px;
+  border-radius: 6px;
+}
+
+.logrow.is-mark .logmark {
+  color: var(--accent);
+}
+
+.logrow.is-mark .logmark::before {
+  content: '★';
+}
+
+/* 收藏过的行给一层极淡的底：滚动的时候一眼能看出"记号在哪一段"，
+   不用去右边找那颗星。压到 7% 是因为行里还可能叠着 .loghit（搜索命中）的底色，
+   两层都用 accent 派生的话，行底再重一点，命中词就跳不出来了 */
+.logrow.is-mark {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.logrow.open .logmsg {
+  max-height: none;
+}
+
+@media (hover: hover) {
+  .logrow.expandable:hover .logtag {
+    color: var(--ink);
+  }
+
+  /* pid 和标签同性质的控件，悬停反馈也就同一套：只是把灰字提成正文色，
+     不给底色、不做位移。这是只读列表里的可点小字，反馈越轻越好 */
+  .logrow.expandable:hover .logpid {
+    color: var(--ink);
+  }
+
+  /* 展开三角平时只是个灰字，没有鼠标经过时不给任何反馈，
+     用户不会知道那 44×44 的一小块是能点开的按钮。
+     只给一条极淡的底衬托它是个控件，不做位移/放大那些抢注意力的动画 ——
+     这是一个只读列表，动效越少，眼睛越能停在日志正文上 */
+  .logtoggle:hover {
+    color: var(--ink);
+  }
+
+  .logtoggle:hover::before {
+    background: var(--hover);
+  }
+
+  /* 收藏星标和三角同性质，悬停反馈也就同一套：只把灰字提成正文色 + 给字形一层淡底。
+     收藏过的行不受这条影响（.logrow.is-mark .logmark 的选择器更重，红色留着）——
+     鼠标划过去不该让"这是我标过的行"这件事看起来变了 */
+  .logmark:hover {
+    color: var(--ink);
+  }
+
+  .logmark:hover::before {
+    background: var(--hover);
+  }
+}
+
+/* 每一行都能点：可展开的行点了开合堆栈，短消息的行点了选中它。
+   光标统一给 pointer，免得同一列里一半像能点、一半像不能点 */
+.logrow {
+  cursor: pointer;
+}
+
+/* 选中的行：正在看的是哪一行，得一眼看得出来。
+   左侧那条竖条换成强调色并加宽 1px，行底给一层极淡的 accent ——
+   和「我收藏过」的底色同族但更重一点，两者叠着也不会糊成一块 */
+.logrow.sel {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-radius: 10px;
+}
+
+.logrow.sel::before {
+  width: 3px;
+  background: var(--accent);
+}
+
+/* 列表整体只占一个 Tab 站（499 行日志要是每行都往 Tab 顺序里塞控件，
+   按 Tab 就永远走不出这个列表），所以焦点框不画在这个大盒子上，
+   画在选中的行上 —— 焦点在哪，和「现在选的是哪一行」是同一件事 */
+#loglist:focus-visible {
+  outline: none;
+}
+
+#loglist:focus-visible .logrow.sel {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* 这一行的操作条：点一行、或键盘选中一行，它才出现在这一行下面。
+   触屏上标签和 pid 只是文字（14px 高的小字当不了 44px 触控目标，
+   硬撑高必然把点击区压到下一行的正文上，点正文就变成筛选），
+   所以真正的动作都收到这里，每个按钮走 .chip，天生 44px 高。
+   行本身有「点开堆栈」的动作，操作条自己吃掉冒泡，免得点条子也开合一次 */
+.logacts {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 2px;
+}
+
+/* 长包名做按钮文字会把操作条顶出面板：只截断按钮上的字，动作一个不少 */
+.logacts .chip {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0 13px;
+  line-height: 44px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logbar {
+  margin-top: 10px;
+}
+
+/* 日志工具条里的小按钮沿用 chip 的触控高度：手机上 38px 太难点中 */
+.logtools > button {
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+/* 复用 .recctl 的控件尺寸，但「只看当前前台应用」是勾选框：
+   不能被 .recctl label 的 grid 排布拆成上下两行 */
+.logctl .checkline {
+  display: inline-flex;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+/* 清空缓冲区和录像库的「清空全部」同一档：危险但可恢复，用红字 + 淡红描边提示 */
+.logbar button.danger {
+  color: var(--err);
+  border-color: color-mix(in srgb, var(--err) 34%, transparent);
+}
+
+/* 渐进加载：日志一屏几百行，全部摊进 DOM 会把手机整页拉到几万像素，
+   滚动条细到抓不住。先画 200 行，这条按钮贴在列表末尾，点一下再放一页。
+   按列表底色排，不抢注意力；它是"还有更多"的信号，不是主操作 */
+.logmore {
+  flex: none;
+  width: 100%;
+  margin: 10px 0 4px;
+  min-height: 44px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.logmore:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+/* 本机侧的工具排：只看崩溃 / 自动刷新 / 复制 / 导出。
+   单独起一行，跟上面那排「要回设备才生效」的筛选拉开距离 ——
+   这两类控件做的事完全不同（一个敲设备、一个只动屏幕），挤在一行里容易被当成一回事 */
+.logtools {
+  margin-top: 8px;
+  gap: 8px 14px;
+}
+
+.logtools .checkline {
+  padding-right: 0;
+}
+
+.logtools button {
+  min-height: 44px;
+  padding: 0 16px;
+}
+
+/* 复制/导出在列表为空时是禁用态。禁用不该只是"变灰到看不见字"，
+   保持文字可读、只降对比，用户才知道按钮在、只是现在没内容可操作 */
+.logtools button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 三个角标（崩溃数、收藏数、新增数）共用同一套外壳：勾选框旁边的小胶囊，数字走等宽防抖。
+   颜色分开 —— 崩溃用 err（读到崩溃是坏消息），收藏用 accent
+   （记号是用户自己做的，不是"出错了"，不该跟着 err 走），「新增」不上色
+   （新打出来的日志既不是好消息也不是坏消息，凭什么替用户下这个判断，
+   沿用外壳的中性色就好，要表达"新"的是那个数字本身）。
+   有崩溃时才是红的，平时整个元素不出现；不给它做脉冲/红点那类动画 ——
+   这是一个只读列表，多一个"新消息"式的注意力黑洞会让用户一直盯着它，而不是去看堆栈 */
+.logcrashn,
+.logmarkn,
+.lognewn {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  place-items: center;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 上面把角标的 display 写成了 inline-grid，作者样式会盖掉 UA 的 [hidden]{display:none}，
+   所以这里必须自己补一条，否则没有崩溃/没有收藏时角标会顶着一个空壳留在原地 */
+.logcrashn[hidden],
+.logmarkn[hidden],
+.lognewn[hidden] {
+  display: none;
+}
+
+.logcrashn:not([hidden]) {
+  color: var(--err);
+  border-color: color-mix(in srgb, var(--err) 34%, transparent);
+  background: color-mix(in srgb, var(--err) 12%, transparent);
+}
+
+.logmarkn:not([hidden]) {
+  color: var(--accent-ink);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+/* ---- 等级条：这一批日志按等级分段的占比条 ---- */
+
+.logdist {
+  margin-top: 8px;
+}
+
+/* 段宽是相对的（flex-basis:0 + 行内 flex-grow＝条数），整条读起来就是"这批日志的构成"。
+   段之间留 3px：不留缝会连成一条色带，看不出是几段；缝太宽又会把占比读碎，
+   眼睛得靠缝的宽度去估占比 */
+.logdistbar {
+  display: flex;
+  gap: 3px;
+}
+
+/* 每一段都是按钮：点一下＝只看这一级。44px 高、min-width 44px 是触控目标
+   （和这一页别的控件同一档），也正因为要能点，它才没被做成 10px 高的纯装饰细条。
+   超出的一段裁掉而不是撑破面板：段是 flex 收缩出来的，容不下那么多字时必须让位给"不断行" */
+.logseg {
+  display: flex;
+  flex: 0 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--card-2);
+  color: var(--ink-2);
+  font: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.logseg b {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.logseg span {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  /* 数字是配角的配角：字母说明是哪一级，数字只是量级。降一点透明度，
+     扫一眼先认出等级，要细看再看数字 */
+  opacity: 0.72;
+}
+
+.logseg.is-warn {
+  background: color-mix(in srgb, var(--warn) 16%, transparent);
+  color: var(--warn);
+}
+
+.logseg.is-err {
+  background: color-mix(in srgb, var(--err) 16%, transparent);
+  color: var(--err);
+}
+
+/* 选中的那一段：框一圈自己的颜色（currentColor 就是这一段的等级色）。
+   不管点的是哪一级，反馈都是"这一段被框起来了"；
+   不用"填充变强调色"表示选中 —— 那会和「E/F 是红的」这套严重度语义打架 */
+.logseg.on {
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+@media (hover: hover) {
+  /* 悬停把底色按这一段的颜色压深一档。等级色跟着 currentColor 走，
+     红段悬停是深红、中性段悬停是深灰，不用为每个等级各写一条 */
+  .logseg:hover {
+    background: color-mix(in srgb, currentColor 16%, var(--card-2));
+  }
+}
+
+/* 一排 4 件东西在窄栏里横着放不下：列间距是 14px（见 .logtools 的 gap），
+   两者相加 394px，而面板最宽只有 420px、日志列表实际只剩 ~384px，
+   flex-wrap 就会把「导出 .txt」单独甩到第二行，跟上面那排筛选控件糊成一片。
+   这里直接排成 2×2 规整网格（只看崩溃 / 自动刷新 一行，复制 / 导出 一行），
+   按钮各占半宽 —— 一行是「筛什么」、另一行是「拿这批去干什么」，分组一眼可读。
+   阈值取 899 而不是 480：面板宽度只在 900px 才从 420 跳到 760（见 .panel 的
+   max-width 与 min-width:900 那条），所以 900 以下日志列表一直是 ~384px 的窄栏，
+   按 480 断会让 500~899 这一段又掉回三行的老样子。
+   放在这里而不是塞进前面的 max-width 媒体查询里，是因为 CSS 同权重下按源序生效，
+   必须排在 .logtools 本体规则之后才能真的盖住它 */
+@media (max-width: 899px) {
+  /* 日志页顶部这排控件在手机上原先是自然流式排布：两个下拉各自撑成一行，
+     勾选框和读取按钮再各占一行，整块 152px，加上下面的工具排 160px，
+     一屏 844px 里前 662px 全是控件，日志正文一行都还没出来。
+     这里改成两列网格：行数/等级并排一行，只读前台应用/读取日志并排一行 */
+  .logctl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    align-items: end;
+  }
+
+  .logctl > label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  .logctl > label select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* 勾选框那一格不需要上下堆叠，文字跟框并排；高度对齐到按钮 */
+  .logctl > .checkline {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+  }
+
+  .logctl > button {
+    width: 100%;
+  }
+
+  /* 7 件东西全塞进两行：4 个筛选各占 3 条（一行 4 个），
+     3 个动作按钮各占 4 条（一行 3 个）。
+     原来排 3 行要 160px，手机上日志正文被顶到屏幕外；压成 2 行只剩 ~96px。
+     第一行筛「看哪些」、第二行是「拿这批去干什么」，分组仍然一眼能读出来 */
+  .logtools {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 8px;
+    align-items: center;
+  }
+
+  .logtools .checkline {
+    grid-column: span 3;
+    gap: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .logtools button {
+    grid-column: span 4;
+    padding: 0 8px;
+    /* 38px 低于拇指可点面积，保持 44px 只收字号 */
+    min-height: 44px;
+    font-size: 12.5px;
+  }
+}
+
+/* ---------------------------------------------------------------- 自动化脚本
+   面板本身没有新视觉语言：卡片、列表、分段、行内按钮全部复用既有组件，
+   这里只补三样东西 —— 一步动作的编辑行、一条脚本在列表里的分块、运行结果的逐步清单。
+   颜色沿用同一套语义：红=要动手/没成功，灰=未生效，ok/warn 只用在运行结果上。 */
+
+.afield {
+  display: block;
+  margin-top: 16px;
+}
+
+/* eyebrow 本体是 flex 行，这里是块级标题的用法，下面要留出和控件的间距 */
+.afield > .eyebrow {
+  margin-bottom: 8px;
+}
+
+.afield .seg {
+  margin-bottom: 10px;
+}
+
+.afield .list {
+  margin-top: 8px;
+}
+
+/* 编辑行：一行放不下，所以是「编号 + 动作选择 + 三个操作键」一行，
+   参数控件单独一行铺满 —— 参数是随类型变的（下拉 / 滑杆 / 输入框 / 时间），
+   挤在同一个 flex 行里必然互相打架 */
+.steprow {
+  display: flex;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.steprow:last-child {
+  border-bottom: 0;
+}
+
+.stepno {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 11px;
+  border-radius: 7px;
+  background: var(--card-2);
+  color: var(--ink-3);
+  font-size: 11px;
+  display: grid;
+  place-items: center;
+}
+
+.stepmain {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stephead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stephead select {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* 44px 是触控下限；三个键各占 44px 宽，窄屏上仍给下拉框留下能读的宽度 */
+.stephead button {
+  flex: none;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 10px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+@media (hover: hover) {
+  .stephead button:hover {
+    border-color: var(--ink-3);
+    color: var(--ink);
+  }
+}
+
+.stephead button:disabled {
+  opacity: 0.35;
+}
+
+.stephead button.del {
+  color: var(--accent-ink);
+  border-color: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+.stepnote {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+/* 一条脚本：上半部是名字与摘要，下半部是本条自己的动作按钮。
+   动作都做成按钮而不是图标，因为「运行 / 编辑 / 启用 / 删除」四个语义
+   光靠图标认不出来，点错了代价还不小 */
+.ablock {
+  border-bottom: 1px solid var(--line);
+  padding: 12px 0;
+}
+
+.ablock:last-child {
+  border-bottom: 0;
+}
+
+.ablock > .srow {
+  min-height: 0;
+  padding: 0;
+  border-bottom: 0;
+  align-items: flex-start;
+}
+
+.ablock .row.acts {
+  margin-top: 9px;
+  gap: 7px;
+}
+
+.ablock .row.acts button {
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 12.5px;
+}
+
+.ablock.paused .s-main b {
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+/* 触发方式本身也是信息，不只是名字后面的注释：定时的脚本会用时间点收尾，
+   这里给一个小标签，扫一眼列表就知道哪几条会自己动 */
+.atrig {
+  flex: none;
+  align-self: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.atrig.live {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--accent-ink);
+}
+
+/* 运行结果：跑完留在列表/编辑器里，逐步摊开。
+   状态只用编号方块的颜色区分（ok 绿、warn 黄、failed 红、pending 灰），
+   正文保持中性 —— 一屏全是彩色文字反而看不清哪一步出问题 */
+.runs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+
+.runs > .caption {
+  margin: 0;
+}
+
+.rstep {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.rstep .rno {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: var(--card-2);
+  color: var(--ink-3);
+  font-size: 11px;
+  display: grid;
+  place-items: center;
+}
+
+.rstep.ok .rno {
+  color: var(--ok);
+}
+
+.rstep.warn .rno {
+  color: var(--warn);
+}
+
+.rstep.failed .rno {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.rstep.running .rno,
+.rstep.pending .rno {
+  color: var(--ink-3);
+}
+
+.rstep .rtxt {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.rstep .rtxt b {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.rstep.failed .rtxt b {
+  color: var(--accent-ink);
+}
+
+.rstep .rtxt span {
+  display: block;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+/* 运行记录里的时间与来源：一行读完，不换行撑高整条 */
+.rwhen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin-bottom: 2px;
+}
+
+.rwhen .ok {
+  color: var(--ok);
+}
+
+.rwhen .err {
+  color: var(--accent-ink);
+}
+
+/* 行内按钮的红色变体（复用 .chip.danger 的语义，但要在 .row 里也能生效） */
+.row button.danger {
+  color: var(--accent-ink);
+  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
+}
+
+/* 媒体库每条左边的小方块：图片直接给缩略图，视频/音频给类型字。
+   一排文件名很难认，"是不是那张图"必须一眼能看出来 —— 认错了就会播错东西 */
+.mthumb {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-ctl);
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+/* ---- 自动化脚本：一步里的多行参数（控件在上、选项在下）。
+   键盘或方向键点选，两行之间要留出能看清的间隔，又不该把一步撑得太高 ---- */
+.stepcol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stepcol > .grow {
+  width: 100%;
+}
+
+.stepcol .checkline {
+  min-height: 36px;
+}
+
+.stepcol .checkline .muted {
+  font-size: 11.5px;
+}
+
+/* ---------------------------------------------------------------- 窄屏底栏
+   窄屏原来顶部叠着两条：标题栏 68px + 上排 58px，一进页面 126px 就没了。
+   手机和内置浏览器一屏本来就不高，这一截是直接从内容里扣的。
+   900 起上排已经并进 app bar，只剩 900 以下还顶着两条，
+   所以这一档把上排挪到屏幕底部的拇指区：顶部只留标题栏一条，底部一条导航，
+   内容反而多出 58px。
+   格子 54px 高，仍在 44px 触控下限之上；底栏居中，宽度上限跟 .panel 对齐，
+   平板横屏时不会跟着窗口拉成一条通栏 */
+@media (max-width: 899px) {
+  .panel {
+    /* 底栏 67px + 一点呼吸位：滚到页尾时状态行不会贴着导航 */
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  /* 标题下的小圆点已经在报「已连接 / 离线」，页尾再写一遍同一个状态，
+     滚动到底部时会像出现第二条状态栏。窄屏整条收掉，宽屏照旧保留；
+     设备序列号在设备页与连接页都能看到，不必靠这条页脚 */
+  .p-foot {
+    display: none;
+  }
+
+  .tabs {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 420px;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
+    background: color-mix(in srgb, var(--panel) 92%, transparent);
+    backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: 0 -12px 30px -22px rgba(20, 24, 36, 0.55);
+    /* 必须高于抽屉遮罩（.sheet，z-index 60）：抽屉开着时三个点也要能点，
+       点第二次就是关抽屉，否则会被蒙层挡住让人以为按钮坏了 */
+    z-index: 70;
+  }
+
+  .tab {
+    height: 54px;
+  }
+
+  /* 底栏在抽屉之上（z-index 70）：三个点开着抽屉时还能点第二下关闭。
+     抽屉本身停在导航上沿，这里只补 12px 呼吸位；padding-bottom 再算 96px
+     会把内容区撑出视口，最后一行反而被底栏压住 */
+  #moresheet .sheet-body {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+
+  /* 手机底部导航占用 67px；抽屉的可视高度先扣掉这一截，
+     否则 grid 的 align-content:end 仍会按整屏高度把标题和内容推到底栏下面 */
+  #moresheet {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  /* 提示条要浮在底栏之上，不然「已保存」这类回执正好压在导航下面 */
+  /* toast 已固定到页面上部，不随窄屏底栏再偏移 */
+
+  /* 「有新版本」那颗悬浮球同理：原来按 58px 让位给底部状态条，
+     底栏换成 67px 的导航之后要抬到它上面，不然一半压在导航里 */
+  .stale {
+    bottom: calc(82px + env(safe-area-inset-bottom));
+  }
+}
+
+/* 走「铺满视口」这条全屏兜底时，底栏不能压在画面上面
+   （原生全屏是另一条路径，导航本来就不在那一层里） */
+body.fs-lock .tabs {
+  display: none;
+}
+
+/* 连接状态圆点：宽屏由底部状态条报，这里不占位；
+   窄屏那条整条收掉，一眼看状态就靠它 */
+.p-dot {
+  display: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+
+.p-dot.on {
+  background: var(--accent);
+}
+
+/* 首次读取状态时给一个很轻的呼吸点：页面不是空壳，只是还在等 adb 回话。
+   读到结果后 renderState 会把 .loading 摘掉，不会长期闪。 */
+.p-sub.loading .p-dot {
+  background: var(--accent);
+  animation: p-dot-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes p-dot-pulse {
+  50% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p-sub.loading .p-dot {
+    animation: none;
+  }
+}
+
+@media (max-width: 899px) {
+  .p-dot {
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+}
+
+/* 320–374 这一段窄屏，标题栏横向根本不够分：
+   角标 34 + 间距 11 + 名字 144 + 间距 12 + 操作组 138 = 339，
+   而 320 上可用宽度只有 284，名字被截成「Android ...」——
+   一台机器上挂了两台设备就分不清点的是哪一台。
+   这一档让角标先让位（它只是设备品牌首字母，纯装饰，信息量为零），
+   左右留白和两块之间的间距也各收一点。名字和机型行整行放下，
+   操作组三颗按钮仍然各自 44px，触控面积一点没动 */
+@media (max-width: 379px) {
+  .p-mark {
+    display: none;
+  }
+
+  .p-head {
+    gap: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* 1180 起换回左侧竖导航：宽屏没有「把菜单压进顶栏」的空间压力，
+   左侧竖栏反而是最合理的形态。收起时只占 64px，展开 208px；
+   图标 + 文字竖着排，一屏能看全所有面板，不用把 10 个面板硬塞回顶栏。
+   窄屏（<900）和中等屏（900-1179）仍是原来的 5 格 + 更多抽屉，不受影响。
+   max-width 1280 是有意收紧：2560 的显示器上再宽，右侧内容区只剩一条长带子，
+   行读起来太吃力，也和 900 到 1179 的 760 差距过大 */
+/* 宽屏左侧竖导航的分节标题。窄屏 .tabs 是底部 4 格，标题没地方放也不需要 */
+.tab-grp {
+  display: none;
+}
+
+@media (min-width: 1180px) {
+  .panel {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    align-items: stretch;
+    /* 桌面端按应用壳固定到视口：内容区自己滚动，底栏始终占自己的那一行。
+       否则面板会被内容撑高，sticky 底栏再浮在视口底部，正好盖住最后一排内容 */
+    height: calc(100vh - 52px);
+    min-height: 0;
+    overflow: clip;
+  }
+
+  /* grid 布局下 p-top 不再 sticky：竖导航本身就是固定列，不需要额外粘顶 */
+  .p-top {
+    display: contents;
+  }
+
+  /* 竖导航本体。底栏 max-width:420 的样式在窄屏媒体里，这里天然不受影响 */
+  .tabs {
+    grid-row: 1 / -1;
+    grid-column: 1;
+    position: sticky;
+    top: 0;
+    /* 必须高于抽屉遮罩（.sheet，z-index 60）：抽屉开着时竖导航也要能点，
+       点别的菜单就是「切页 + 关抽屉」 */
+    z-index: 70;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    /* 64 是「图标 + 两字标签」的极限宽度，加上分节标题之后「显示」还会被
+       overflow-x 切掉。76 让 5 个 10px 汉字连同字距放得下，
+       内容区上限 1280 不变，只是左右各少 12px 留白 */
+    width: 76px;
+    /* 竖导航跟面板同高，不再额外叠一份 100vh */
+    margin: 0;
+    padding: 6px 6px;
+    border-right: 1px solid var(--line);
+    border-radius: 0;
+    background: var(--panel);
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .tabs .tab.sec {
+    display: flex;
+  }
+
+  .tab-grp {
+    display: block;
+    margin: 6px 2px 2px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+
+  .tab-grp:first-child {
+    margin-top: 0;
+  }
+
+  /* 六个次级面板已经直接放进竖导航，「更多」抽屉只剩窄屏和平板需要 */
+  #tab-more {
+    display: none;
+  }
+
+  .tab {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    height: 48px;
+    min-width: 0;
+    border-radius: 12px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .tab-lb {
+    max-width: 56px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+
+  .p-head {
+    display: contents;
+  }
+
+  /* 右侧内容列是唯一的滚轮/触控滚动区。header、竖导航、底栏都不参与滚动，
+     长页面滚到底时最后一块内容会停在底栏上方，而不是钻到它下面 */
+  main {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  /* 标题栏与操作组横跨右侧内容区，形成上边栏 */
+  .p-id {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    justify-self: start;
+    padding: 9px 18px 9px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .p-acts {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+    padding: 0 18px 0 0;
+  }
+
+  .panel::after {
+    grid-column: 2;
+    grid-row: 2;
+    content: '';
+    display: block;
+    border-bottom: 1px solid var(--line);
+    margin: 0;
+  }
+
+  .p-top ~ .pane {
+    grid-column: 2;
+  }
+
+  .details {
+    grid-column: 2;
+  }
+
+  .ptop-foot, .p-foot {
+    grid-column: 2;
+    position: static;
+  }
+}
+
+/* 按小时分布：真实数据（checkin 时间桶），无数据就不显示。
+   窄屏横滚，宽屏满铺；每格 44px 起步保证触控可点 */
+.usage-hourly {
+  margin-top: 14px;
+}
+
+.usage-hourly[hidden] {
+  display: none;
+}
+
+#usage-hbars {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(44px, 1fr);
+  gap: 4px;
+  margin-top: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  /* 窄屏横滚是这个条的既定形态，但裸的方块滚动条跟全局细条不是一个体系 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-thumb) transparent;
+}
+
+.uhcell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  justify-content: flex-end;
+}
+
+.uhcell i {
+  width: 100%;
+  max-width: 28px;
+  min-height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--accent);
+  opacity: .82;
+}
+
+/* 标签分两行：上行小时，下行时长，都不般一行截断
+   矮屏每格 44px 最小嬽心仍然成立，标签超出就折行而不是挤成一团 */
+.uhcell span {
+  font-size: 10px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.uhcell span::before {
+  content: attr(data-hour);
+  display: block;
+  color: var(--ink-2);
+  font-weight: 550;
+  font-size: 10px;
+}
+
+/* 1180 起内容列变成独立的一层，自动化页的时间输入框继承不到通用 input 的居中宽度，
+   会缩成 56px 只露出数字。给它一个跟系统设置等页一致的最小宽度 */
+@media (min-width: 1180px) {
+  #autoat {
+    min-width: 108px;
+  }
+}
+.srv-details summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--ink-2);
+  user-select: none;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+}
+
+/* 折叠标题撑到 44px 后会把卡片多撑高 30px；用 details 的上内距吃掉这段，
+   视觉间距跟原来一样，可点击区域却是完整的 44px */
+.srv-details {
+  margin: -14px 0 0;
+}
+
+.srv-details summary:hover {
+  color: var(--ink-1);
+}
+
+.srv-details .row,
+.srv-details .caption {
+  margin-top: 10px;
+}
+
+
+/* 总览健康快照首屏骨架：数据没到前先占住四张卡的位置，
+   避免读数到达时整块卡片高度突然撑开 */
+#homesnap .snap-ghost {
+  pointer-events: none;
+}
+
+#homesnap .snap-ghost-card {
+  position: relative;
+  overflow: hidden;
+}
+
+#homesnap .snap-ghost-card::before,
+#homesnap .snap-ghost-card::after {
+  content: '';
+  display: block;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--ink-3) 16%, transparent);
+}
+
+#homesnap .snap-ghost-card::before {
+  width: 44%;
+  height: 10px;
+  margin-bottom: 9px;
+}
+
+#homesnap .snap-ghost-card::after {
+  width: 100%;
+  height: 7px;
+}
+
+@keyframes snapGhostPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.85; }
+}
+
+#homesnap .snap-ghost-card::before,
+#homesnap .snap-ghost-card::after {
+  animation: snapGhostPulse 1.5s ease-in-out infinite;
+}
+[data-theme='light'] #homesnap .snap-badge.ok { color: #1a7f37; background: rgba(34, 154, 22, 0.12); }
+[data-theme='light'] #homesnap .snap-badge.warn { color: #9a6700; background: rgba(210, 153, 34, 0.16); }
+[data-theme='light'] #homesnap .snap-badge.critical { color: #c0392b; background: rgba(203, 36, 49, 0.12); }
+
+[data-theme='dark'] #homesnap .snap-badge.ok { color: #2ecc71; background: rgba(46, 204, 113, 0.16); }
+[data-theme='dark'] #homesnap .snap-badge.warn { color: #f1c40f; background: rgba(241, 196, 15, 0.16); }
+[data-theme='dark'] #homesnap .snap-badge.critical { color: #e74c3c; background: rgba(231, 76, 60, 0.16); }
+
+/* 触屏说明浮层：title 里的折叠说明在手机上悬停不出来，点一下就地弹。
+   跟着元素定位（app.js 里写 left/top），宽度收在 260px 以内免得盖满整屏 */
+#tipbox {
+  position: fixed;
+  z-index: 130;
+  max-width: min(260px, calc(100vw - 24px));
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card-2);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  animation: tip-in 0.14s ease-out;
+  pointer-events: auto;
+}
+
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #tipbox {
+    animation: none;
+  }
+}
+
+/* 触屏上没有 hover，得让人看得出「这里还有半句」：虚线下划线保留，
+   再加一个手型/点按的暗示 */
+@media (hover: none) {
+  /* 一行细说明在手指下太矮：Chromium 的触屏命中会把手按的位置吸附给旁边
+     更大的可点元素（比如说明行上方那排按钮），点上去等于按了别的键。
+     留出 4px 上下呼吸，让这一行自己成为合格的点按目标。 */
+  .caption[title] {
+    padding: 4px 0;
+  }
+
+  .cut,
+  .drow.wide b.hasnote,
+  .cap-d.hasnote {
+    cursor: pointer;
+  }
+}
+
+/* 无脚本时的自动化空状态：一块主行动卡，而不是两个空列表上下重复。
+   容器 #autolist 自己已经是带边框/底色的 .list，这里不能再画一层，
+   否则空状态会套出「框里有框」的双层卡片（看起来像渲染错误） */
+.auto-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 4px;
+  border: 0;
+  background: transparent;
+}
+
+.auto-empty b {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.auto-empty .row {
+  margin-top: 4px;
+}
+
+/* 连接页：当前设备与扫描/手动入口，高级设置折叠 */
+.connect-acts {
+  margin-top: 2px;
+}
+
+.connect-acts button.grow {
+  max-width: none;
+}
+
+.link-manual {
+  padding: 0 12px 12px;
+}
+
+.link-manual > .row {
+  margin-top: 2px;
+}
+
+.link-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.link-manual,
+.srv-advanced {
+  min-width: 0;
+}
+
+.link-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.link-side > .fold {
+  margin-top: 0;
+}
+
+.scan-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 30px;
+}
+
+.scan-foot #scanmeta:empty {
+  display: none;
+}
+
+.scan-foot .link {
+  flex: none;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* 桌面宽屏连接页两列：左列入口/扫描，右列手动输入，
+   不再让「连接方式」标题下面一堆东西按一条窄列全堆下去 */
+@media (min-width: 900px) {
+  #srv-advanced {
+    max-width: 420px;
+  }
+
+  .pane[data-pane='link'].on {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 340px);
+    align-items: start;
+    gap: 10px 20px;
+  }
+
+  .pane[data-pane='link'].on h2:first-child,
+  .pane[data-pane='link'].on > #curconn {
+    grid-column: 1 / -1;
+  }
+
+  .pane[data-pane='link'].on h2:nth-of-type(2),
+  .pane[data-pane='link'].on .connect-acts,
+  .pane[data-pane='link'].on .link-main {
+    grid-column: 1;
+  }
+
+  .pane[data-pane='link'].on #link-manual,
+  .pane[data-pane='link'].on #srv-advanced {
+    grid-column: 2;
+  }
+
+  .pane[data-pane='link'].on .link-main {
+    grid-column: 1;
+  }
+}
+
+.srv-advanced > .card {
+  margin-top: 2px;
+}
+
+/* 扫描期间的结果占位：做成「设备行」的形状（圆头像 + 两行短条），
+   一眼就能认出这是列表在加载，而不是两块坏掉的灰板 */
+.scan-skel {
+  display: grid;
+  gap: 8px;
+}
+
+.scan-skel-hint {
+  margin: 0 0 8px;
+}
+
+.scan-skel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 10px 12px;
+  border-radius: var(--r-ctl);
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+
+/* 扫描骨架在扫描页立起来时用静态浅色占位：比起不断移动的渐变，更接近
+   后面真实设备行「圆头像 + 两行文字」的最终状态，也不会在加载时抢视野。 */
+.scan-skel-av,
+.scan-skel-line {
+  display: block;
+  background: color-mix(in srgb, var(--ink-3) 12%, transparent);
+}
+
+.scan-skel-av {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.scan-skel-lines {
+  display: grid;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+}
+
+.scan-skel-line {
+  height: 10px;
+  border-radius: 5px;
+}
+
+.scan-skel-line-1 {
+  width: 46%;
+}
+
+.scan-skel-line-2 {
+  width: 28%;
+}
+
+.scan-state {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.scan-state::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+
+.scan-state.busy::before {
+  width: 10px;
+  height: 10px;
+  background: transparent;
+  border: 2px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  border-top-color: var(--accent);
+  animation: scan-spin 0.8s linear infinite;
+}
+
+.scan-state.err {
+  color: var(--err);
+}
+
+.scan-state.err::before {
+  background: var(--err);
+}
+
+@keyframes scan-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.curdev-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.curdev-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--card-2);
+  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.curdev-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.curdev-name,
+.curdev-sub {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.curdev-name {
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.curdev-sub {
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-size: 11.5px;
+}
+
+.curdev-state {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+.curdev-state::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+
+.curdev-state.on {
+  color: var(--ok);
+}
+
+.curdev-state.on::before {
+  background: var(--ok);
+}
+
+.link-manual > .row {
+  margin-top: 2px;
+}
+
+.srv-advanced > .card {
+  margin-top: 2px;
+}
+
+/* 宽屏右栏的健康快照：320-360px 宽里四张卡竖排要 396px，
+   比左侧画面栏高一大截，最后一张卡直接掉出首屏。
+   改成 2×2（三个进度指标两行，「已运行」横跨底部），内距字号同步收紧。
+   放在文件末尾，避免被前面的基础单列规则覆盖 */
+@media (min-width: 1180px) {
+  #homesnap .snapgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  #homesnap .snapstat {
+    padding: 8px 9px;
+    border-radius: 9px;
+    gap: 2px;
+  }
+
+  #homesnap .snap-title {
+    font-size: 11px;
+  }
+
+  #homesnap .snap-v {
+    font-size: 12.5px;
+  }
+
+  #homesnap .snap-sub {
+    font-size: 10px;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #homesnap .snap-track {
+    height: 8px;
+  }
+
+  /* 四个指标正好 2×2：不再让「已运行」横跨整行，
+     否则第二行右边会空出一格，看起来像少了一张卡 */
+  #homesnap .snapstat.is-text .snap-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  #homesnap .snapstat.is-text .snap-v {
+    margin-left: 0;
+    white-space: nowrap;
+  }
+}
+
+/* 横屏手机 / 矮窗口：底部导航占掉 67px 后只剩三百来像素，
+   两列磁贴排成四行会被截掉最后一格。这一档把抽屉放宽、磁贴改成三列，
+   七格正好三行收进一屏，不用在抽屉里再滚一次 */
+@media (min-width: 600px) and (max-width: 899px) and (max-height: 520px) {
+  /* 横屏手机：整壳不再锁在 420 的手机宽度里，否则 780 宽的屏幕上
+     左右各空 180，16:9 画面只剩 374 宽。这里把面板放到接近满宽，
+     底栏跟着对齐，总览改成「画面 / 控制」两栏，首屏能同时看到画面与音量 */
+  .panel {
+    max-width: min(820px, calc(100vw - 16px));
+  }
+
+  .tabs {
+    max-width: min(820px, calc(100vw - 16px));
+  }
+
+  .pane[data-pane='home'].on {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 14px;
+  }
+
+  .pane[data-pane='home'] .device-brief,
+  .pane[data-pane='home'] .home-connect {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .pane[data-pane='home'] .hcol-a {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .pane[data-pane='home'] .hcol-b {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+  }
+
+  /* 两栏之后应用清单在窄栏里也能并排，省掉一半纵向滚动 */
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #moresheet {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  #moresheet .sheet-head,
+  #moresheet .sheet-body {
+    max-width: min(680px, calc(100vw - 24px));
+  }
+
+  #moresheet .sheet-body {
+    max-height: calc(100vh - 75px - env(safe-area-inset-bottom));
+  }
+
+  #moresheet .more-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  #moresheet .mtile {
+    min-height: 56px;
+    padding: 8px 9px;
+    column-gap: 8px;
+  }
+
+  #moresheet .mtile-ic {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+  }
+}
+
+/* 快照徽标颜色只属于状态徽标本身，不再继承进度条色（进度条色会叠加描边主题色） */
+#homesnap .snap-badge.fill-ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 16%, transparent); }
+#homesnap .snap-badge.fill-warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 18%, transparent); }
+#homesnap .snap-badge.fill-critical { color: var(--err); background: color-mix(in srgb, var(--err) 15%, transparent); }
+
+/* 快照迷你趋势线：数据色用中性灰，避免和状态徽标、进度条抢语义 */
+#homesnap .snap-trend svg { stroke: color-mix(in srgb, var(--ink-2) 80%, transparent); }
+
+/* 离线总览只保留一个任务：把 ADB 设备接上。
+   音量、健康、常用应用和画面工具都依赖在线设备，此时既没有数据也不可操作；
+   把它们继续摊在首屏，只会用多句“设备离线”重复同一个结论。 */
+.pane[data-pane='home'].home-offline.on {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pane[data-pane='home'].home-offline .hcol-a {
+  display: none;
+}
+
+.pane[data-pane='home'].home-offline .hcol-b,
+.pane[data-pane='home'].home-offline .tv-tools,
+.pane[data-pane='home'].home-offline .eyebrow,
+.pane[data-pane='home'].home-offline .now {
+  display: none;
+}
+
+/* 离线总览换成 ADB 连接面板：不再用黑色「设备屏幕」当入口，
+   否则会让人误以为这是某类形态专属控制台。连接面板是有明确动作的卡片，
+   「扫描 / 手动输入 / 重连」按主次排开，设备画面只留给在线场景。 */
+.home-connect {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px 16px;
+  align-items: center;
+  width: min(100%, 720px);
+  margin: 2px auto 8px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--card);
+}
+
+.pane[data-pane='home']:not(.home-offline) .home-connect {
+  display: none;
+}
+
+.home-connect .hconn-badge {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--accent-ink);
+  font-weight: 650;
+}
+
+.home-connect h2 {
+  margin: 0 0 3px;
+}
+
+.home-connect .caption {
+  margin: 0;
+  max-width: 56ch;
+}
+
+.home-connect .hconn-actions {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+
+.home-connect button.grow {
+  flex: 1 1 150px;
+}
+
+.home-connect button.primary {
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.home-connect button.primary:hover {
+  background: var(--accent-press);
+  border-color: var(--accent-press);
+}
+
+.home-connect .link {
+  flex: 0 0 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 12px;
+  margin: 0;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-ctl);
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.home-connect .link:not([hidden]) {
+  display: inline-flex;
+}
+
+.home-connect .hconn-steps {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.home-connect .hconn-steps b {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  font-size: 10.5px;
+  color: var(--ink-2);
+  vertical-align: -4px;
+}
+
+@media (max-width: 560px) {
+  .home-connect {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  .home-connect .hconn-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    font-size: 11px;
+  }
+}
+
+/* ------------------------------------------------------------------
+   ADB 设备工作台：画面是主任务，信息与健康数据是辅助信息。
+   这里只在宽屏重排画面工具，不改动原有 .tv / .tv-* 内部命名。
+   ------------------------------------------------------------------ */
+@media (min-width: 900px) {
+  /* 顶栏已经给出设备、连接状态和型号；页脚与底部状态重复，
+     还会占掉预览所需的高度，因此桌面端直接收起。 */
+  .p-foot {
+    display: none;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1179px) {
+  .tv {
+    /* 中等桌面留给上方的设备事实条，预览不能按窄屏的 62vh 继续长高 */
+    --preview-maxh: min(47vh, 420px);
+  }
+}
+
+@media (min-width: 1180px) {
+  .tv {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 132px;
+    grid-template-rows: auto auto;
+    column-gap: 18px;
+    align-items: start;
+    --preview-maxh: min(58vh, 540px);
+  }
+
+  .tv-heading {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .tv-frame {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+  }
+
+  /* 工具栏从画面底部移到右侧竖排，把有限的纵向空间全部让给设备画面。
+     按钮仍然保留图标和文字，避免宽屏只剩一排难认的符号。 */
+  .tv-tools {
+    grid-column: 2;
+    grid-row: 2;
+    display: block;
+    align-self: start;
+    width: 132px;
+    margin: 8px 0 0;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--card);
+  }
+
+  .tv-tools::before {
+    content: '画面工具';
+    display: block;
+    margin: 0 2px 8px;
+    color: var(--ink-3);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .tv-tools .tv-acts {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    gap: 8px;
+  }
+
+  .tv-tools .tvbtn {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    padding: 0 10px;
+    justify-content: flex-start;
+  }
+
+  /* 当前应用已经在首屏事实条里；画面下方再来一遍会占掉最后一行可视空间。 */
+  .pane[data-pane='home'] .hcol-a .eyebrow,
+  .pane[data-pane='home'] .hcol-a .now {
+    display: none;
+  }
+}

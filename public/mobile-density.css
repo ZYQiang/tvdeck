@@ -1,0 +1,793 @@
+/* 手机优先的信息密度补丁：这份文件只处理窄屏，
+   桌面端仍由 style.css 主控，避免影响已验证好的宽屏布局 */
+
+@media (max-width: 899px) {
+  /* 音量卡收成一行：小数字并入标题行，说明放到滑杆下方。
+     避免原先大数字+两行控件把健康快照挤出首屏 */
+  .pane[data-pane='home'] .card:first-child {
+    padding: 13px 14px;
+  }
+
+  .pane[data-pane='home'] .card:first-child .card-top {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .pane[data-pane='home'] .card:first-child .bignum {
+    font-size: 19px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pane[data-pane='home'] .card:first-child .volslide {
+    margin: 10px 0 8px;
+  }
+
+  .pane[data-pane='home'] .card:first-child .round {
+    /* 42px 低于拇指可点面积；收内距已经足够紧凑，尺寸保持 44 */
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+
+  /* 健康快照改为两列紧凑网格：CPU / 内存 / 存储 / 已运行一眼都在，
+     而不是整卡只露出半截进度条 */
+  #homesnap .snap-sum {
+    margin: 0 0 8px;
+    width: 100%;
+  }
+
+  #homesnap .snapgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  #homesnap .snapstat {
+    padding: 8px 9px;
+    border-radius: 9px;
+  }
+
+  #homesnap .snap-head {
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+
+  #homesnap .snap-title {
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #homesnap .snap-badge {
+    padding: 0 5px;
+    font-size: 9px;
+    line-height: 1.7;
+  }
+
+  #homesnap .snap-v {
+    font-size: 12.5px;
+  }
+
+  /* 「已运行」是纯文字卡，时长又长（如「1 小时 17 分 43 秒」）。
+     挤在同一行时标题会被压成「已…」，改成标题在上、时长独占一行 */
+  #homesnap .snapstat.is-text .snap-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+  }
+
+  #homesnap .snapstat.is-text .snap-v {
+    margin-left: 0;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  #homesnap .snap-sub {
+    font-size: 10px;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #homesnap .snap-track {
+    height: 8px;
+    margin-top: 2px;
+  }
+
+  #homesnap .snap-trend {
+    gap: 6px;
+    margin-top: 3px;
+  }
+
+  #homesnap .snap-trend svg {
+    width: 58px;
+    height: 15px;
+  }
+
+  #homesnap .snap-trend span {
+    font-size: 9.5px;
+  }
+
+  #homesnap .snapstatus {
+    margin-top: 8px;
+    font-size: 10.5px;
+  }
+
+  /* 首页右栏卡片里的离线空态再压矮一层，尽量不挤到「常用应用」 */
+  #homesnap .empty-off,
+  .fav .empty-off {
+    padding: 8px 2px 10px;
+  }
+
+  #homesnap .empty-off b,
+  .fav .empty-off b {
+    font-size: 13px;
+  }
+
+  #homesnap .empty-off p,
+  .fav .empty-off p {
+    font-size: 11.5px;
+    line-height: 1.4;
+  }
+
+  /* 360 以下两列也挤：只保留三个核心指标，运行时长自然落到下一屏 */
+  @media (max-width: 360px) {
+    #homesnap .snapgrid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
+/* 横屏矮窗口：一屏本来就只剩三百来像素高，底栏 54px 格 + 6px 垫材把它吃到 67px，
+   操作页的媒体键和功能键被压到首屏外要滚一段才够得着。这一档把格子收到
+   44px 触控下限，图标、间距跟着收一点，底栏总高降到约 52px，媒体键回到首屏。
+   放在文件最末尾才能盖住上面 899px 一栏的 54px 格 */
+@media (max-width: 899px) and (max-height: 520px) {
+  .tabs {
+    max-width: min(820px, calc(100vw - 12px));
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+  }
+
+  .tab {
+    height: 44px;
+    gap: 2px;
+  }
+
+  .tab svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .tab-lb {
+    font-size: 10px;
+  }
+
+  /* 底栏收矮后，抽屉与「有新版本」悬浮球的高度预算同步下调（52px） */
+  #moresheet {
+    padding-bottom: calc(52px + env(safe-area-inset-bottom));
+  }
+
+  #moresheet .sheet-body {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .stale {
+    bottom: calc(66px + env(safe-area-inset-bottom));
+  }
+}
+
+/* 空状态统一：告诉用户“这里为什么是空的”以及“下一步去哪”。
+   层级收在卡片内，不再让空说明和按钮各自裸露在页面里 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--card);
+}
+
+.empty-state b {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.empty-state .row {
+  margin-top: 4px;
+  gap: 8px;
+}
+
+.empty-state .row button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card-2);
+  color: var(--ink);
+  font-size: 12.5px;
+}
+
+/* 系统页桌面候选区：宽屏改两列，消掉大块右侧空白 */
+@media (min-width: 900px) {
+  .subpane[data-sub='home'] .list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 14px;
+    padding: 14px;
+  }
+
+  .subpane[data-sub='home'] .list .srow {
+    min-height: 64px;
+    border-bottom: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card-2);
+  }
+}
+
+/* 设备信息六项常看读数：桌面改成两列键值卡，
+   信息区不再只有一条又长又空的竖列 */
+@media (min-width: 900px) {
+  #devlist {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 14px;
+    padding: 14px;
+  }
+
+  #devlist .drow.wide {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card-2);
+  }
+
+  #devlist .drow.wide > span:first-child {
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+
+  #devlist .drow.wide b {
+    font-size: 13px;
+    color: var(--ink);
+  }
+}
+
+/* 说明入口更轻：小屏上「? + 展开」整条占一行太醒目，收成只留图标配短词，
+   把视觉焦点还给读数本身，要看解释再点开 */
+@media (max-width: 899px) {
+  .inote > summary {
+    min-height: 44px;
+    font-size: 11px;
+    padding: 0 6px;
+    margin: 0 -6px;
+    color: var(--ink-3);
+  }
+
+  .inote > summary::before {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+  }
+
+  .pad-notes {
+    margin-top: -10px;
+  }
+
+  .pad-notes .inote > summary {
+    min-height: 44px;
+  }
+
+  .tv-tools {
+    margin-top: 14px;
+  }
+
+  .tv-tools .tvbtn {
+    flex: 1 1 0;
+    max-width: 68px;
+    min-height: 44px;
+  }
+}
+
+/* 说明段落在小屏收成最多两行，超出折进悬停或省略，不再拉长版面 */
+@media (max-width: 899px) {
+  .caption {
+    font-size: 11.5px;
+    line-height: 1.45;
+  }
+}
+
+@media (max-width: 899px) {
+  /* 控制页：通路提示压成短标签，把方向键和触控板留在首屏 */
+  .pane[data-pane='pad'] > .pad-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+
+  .pane[data-pane='pad'] > .pad-main > .pad-col {
+    gap: 10px;
+  }
+
+  .pane[data-pane='pad'] > .pad-main > .pad-col-touch {
+    min-width: 0;
+  }
+
+  .pane[data-pane='pad'] .pathline {
+    min-height: 32px;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .pane[data-pane='pad'] .pathline b {
+    flex: none;
+    font-size: 11px;
+  }
+
+  .pane[data-pane='pad'] .pad-col-input {
+    gap: 12px;
+  }
+
+  .pane[data-pane='pad'] .dpad {
+    gap: 6px;
+  }
+
+  .pane[data-pane='pad'] .kbdhint {
+    margin-top: 2px;
+    margin-bottom: 8px;
+    font-size: 10.5px;
+  }
+
+  .pane[data-pane='pad'] .dpad button {
+    min-height: 52px;
+    border-radius: 14px;
+  }
+
+  .pane[data-pane='pad'] .touchpad {
+    min-height: 154px;
+  }
+
+  /* 没连接设备时触控板无可拖拽内容；留出底部鼠标键的高度就够了，
+     避免控制页被一整块空黑撑出两屏 */
+  .pane[data-pane='pad'] .touchpad:has(~ #tp-aux #tp-left[disabled]) {
+    min-height: 100px;
+  }
+}
+
+/* 竖持手机的单列控制流：390px 下两列会把触控板和输入卡各压到 160px 左右，
+   键盘输入框、回车/退格和手势文字都会被迫折行。窄屏让触控板先占满宽度，
+   键盘与手势依次向下排；手势网格恢复满宽后会自动落成两到三列。 */
+@media (max-width: 480px) {
+  .pane[data-pane='pad'] > .pad-main {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .pane[data-pane='pad'] > .pad-main > .pad-col,
+  .pane[data-pane='pad'] > .pad-main > .pad-col-nav {
+    width: 100%;
+  }
+
+  .pane[data-pane='pad'] .pad-col-input {
+    gap: 14px;
+  }
+
+  .pane[data-pane='pad'] .touchpad {
+    min-height: 190px;
+  }
+}
+
+/* 触控板下面的设备键：手机上四列并排就够了，
+   两列会把 8 个键拖成 4 行、卡片拉长一大截 */
+@media (max-width: 899px) {
+  .pad-keys.tp-keys {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .pad-keys.tp-keys button {
+    min-height: 44px;
+    padding: 0 6px;
+    font-size: 12px;
+  }
+}
+
+/* 横屏手机 / 矮窗口：面板已经放宽到接近满宽，控制页再竖排就白费宽度 ——
+   首屏只露出方向键，媒体键和触控板都要滚。这里把方向与触控板并成两列，
+   方向键压到 46px（仍高于 44px 触控下限），触控板缩到 150px，
+   一屏就能同时看到两者。放在这个文件末尾，才能盖住上面 899px 的紧凑档 */
+@media (min-width: 481px) and (max-width: 899px) and (max-height: 520px) {
+  .pane[data-pane='pad'] .pad-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px 14px;
+    align-items: start;
+  }
+
+  .pane[data-pane='pad'] .pad-col-input,
+  .pane[data-pane='pad'] .pad-col-touch {
+    gap: 10px;
+  }
+
+  .pane[data-pane='pad'] .dpad {
+    gap: 5px;
+  }
+
+  .pane[data-pane='pad'] .dpad button {
+    min-height: 46px;
+  }
+
+  .pane[data-pane='pad'] .touchpad {
+    min-height: 150px;
+  }
+
+  .pane[data-pane='pad'] .pad-notes {
+    margin-top: 0;
+  }
+
+  /* 右栏三张卡（键盘 / 手势 / 颜色键）在横屏里两列铺开，别拖成一长条 */
+  .pane[data-pane='pad'] .pad-side {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 14px;
+    align-items: start;
+  }
+
+  /* 横屏矮窗里 360px 高、底栏又占 53px，右栏「触控板 + 鼠标键」原本会被底栏切掉：
+     触控板 150px 撑到 308，鼠标键整条落到 316-360 全被盖住。
+     这里把标题栏垫材、触控板与卡片内距一起收紧，让「触控板 + 左/中/右键」
+     全部落在底栏之上；触控板仍留 114px 可拖拽，方向键 44px 不破触控下限 */
+  .p-head {
+    padding: 6px 14px 4px;
+  }
+
+  .pane[data-pane='pad'] .touchpad-card {
+    padding: 8px 12px;
+  }
+
+  .pane[data-pane='pad'] .touchpad-card .card-top {
+    margin-bottom: 5px;
+  }
+
+  .pane[data-pane='pad'] .touchpad {
+    min-height: 114px;
+  }
+
+  .pane[data-pane='pad'] .tp-aux {
+    margin-top: 5px;
+  }
+
+  .pane[data-pane='pad'] .dpad button {
+    min-height: 44px;
+  }
+
+  .pane[data-pane='pad'] .dpad {
+    gap: 4px;
+  }
+}
+
+/* 竖屏手机：先把“这是哪台 ADB 设备”说清楚，再把实时画面抬进首屏。
+   状态条不再占四行，快捷入口收成一条可横向滚动的操作带；
+   它和底部主导航有重叠时，用户仍能从底栏完成同样的跳转。 */
+@media (max-width: 599px) {
+  .p-head {
+    gap: 8px;
+    padding: 10px 14px 8px;
+  }
+
+  .p-id {
+    gap: 9px;
+  }
+
+  .p-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    font-size: 14px;
+  }
+
+  .p-title {
+    min-height: 26px;
+    font-size: 16px;
+  }
+
+  .p-sub {
+    font-size: 11px;
+  }
+
+  .p-acts {
+    padding: 1px;
+  }
+
+  .pane[data-pane='home'] .device-brief {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+
+  .device-brief .db-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .device-brief .db-kicker {
+    flex: none;
+    font-size: 11.5px;
+  }
+
+  .device-brief .db-status p {
+    max-width: 58%;
+    margin: 0;
+    text-align: right;
+    font-size: 11.5px;
+  }
+
+  .device-brief .db-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px 10px;
+  }
+
+  /* 调试标识留到设备详情/连接页；当前应用在画面下方单独一行显示，
+     这里不再重复一遍。窄屏事实条只留系统版本与 ADB 通道。 */
+  .device-brief .db-facts > div:nth-child(2) {
+    display: none;
+  }
+
+  .device-brief .db-facts > div:nth-child(4) {
+    display: none;
+  }
+
+  .device-brief .db-facts span {
+    font-size: 10.5px;
+  }
+
+  .device-brief .db-facts b {
+    margin-top: 1px;
+    font-size: 11.5px;
+  }
+
+  .device-brief .db-actions {
+    /* 四格等宽：横向滚动会把较长的连接入口截成半句，
+       还让最后一格看起来像被裁坏了。四列均分后每个入口都完整露出 */
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .device-brief .db-actions button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 320–360 这一段每格只剩约 60px，四个汉字加内距放不下。
+     宁可换成两列两行，也不把按钮文字裁成半句 */
+  @media (max-width: 360px) {
+    .device-brief .db-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .tv {
+    --preview-maxh: min(56vh, 500px);
+    margin-top: 2px;
+  }
+
+  .tv-heading {
+    min-height: 38px;
+    margin-bottom: 5px;
+  }
+
+  .tv-kicker {
+    font-size: 13px;
+  }
+
+  .tv-source {
+    margin-top: 1px;
+    font-size: 10.5px;
+  }
+
+  .tv-heading .reconnect {
+    min-height: 44px;
+    padding-inline: 12px;
+  }
+
+  .tv-tools {
+    margin-top: 8px;
+  }
+}
+
+/* 横屏矮窗口：高度比宽度更稀缺。这里保留一行状态与连接事实，
+   收起重复的快捷按钮，让设备画面先进入可视区。 */
+@media (min-width: 600px) and (max-width: 899px) and (max-height: 520px) {
+  .pane[data-pane='home'] .device-brief {
+    grid-template-columns: minmax(120px, 0.7fr) minmax(0, 1.6fr);
+    gap: 6px 12px;
+    padding: 8px 12px;
+  }
+
+  .device-brief .db-kicker,
+  .device-brief .db-status p,
+  .device-brief .db-facts span {
+    font-size: 10.5px;
+  }
+
+  .device-brief .db-facts {
+    gap: 4px 10px;
+  }
+
+  .device-brief .db-facts b {
+    margin-top: 1px;
+    font-size: 11px;
+  }
+
+  .device-brief .db-actions {
+    display: none;
+  }
+
+  .tv {
+    --preview-maxh: min(48vh, 220px);
+    margin-top: 0;
+  }
+
+  .tv-heading {
+    min-height: 32px;
+    margin-bottom: 2px;
+  }
+
+  .tv-kicker {
+    font-size: 12px;
+  }
+
+  .tv-source {
+    margin-top: 0;
+    font-size: 10px;
+  }
+
+  .tv-tools {
+    margin-top: 4px;
+  }
+}
+
+/* 竖屏和窄平板：先把可操作画面送到首屏，设备事实、健康和应用依次往下排。
+   顶部已经有设备名与连接状态，所以不再让重复的事实卡挡住主要操作。 */
+@media (max-width: 899px) {
+  .pane[data-pane='home'] > .home-connect {
+    order: 0;
+  }
+
+  .pane[data-pane='home'] > .hcol-a {
+    order: 1;
+  }
+
+  .pane[data-pane='home'] > .device-brief {
+    order: 2;
+  }
+
+  .pane[data-pane='home'] > .hcol-b {
+    order: 3;
+  }
+}
+
+@media (max-width: 599px) {
+  /* 390×844 这类竖屏要同时容纳顶部栏、画面标题、画面、四个操作键
+     和 67px 底部导航。44vh 能保证操作条完整落在导航上方。 */
+  .tv {
+    --preview-maxh: min(44vh, 390px);
+  }
+}
+
+/* 横屏矮窗口：高度只有三百多像素时，上方的事实卡和下方的画面说明
+   会把真正的设备画面挤出首屏。保留顶栏设备身份和右侧关键控制即可。 */
+@media (min-width: 600px) and (max-width: 899px) and (max-height: 520px) {
+  .pane[data-pane='home'] .device-brief,
+  .pane[data-pane='home'] .hcol-a .eyebrow,
+  .pane[data-pane='home'] .hcol-a .now {
+    display: none;
+  }
+
+  .pane[data-pane='home'].on {
+    gap: 12px;
+  }
+
+  .pane[data-pane='home'] .hcol-b {
+    gap: 10px;
+  }
+
+  .tv {
+    --preview-maxh: min(42vh, 170px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    grid-template-rows: auto auto;
+    column-gap: 12px;
+    align-items: start;
+  }
+
+  .tv-heading {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin-bottom: 3px;
+  }
+
+  .tv-frame {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+  }
+
+  /* 横屏底部导航只有 53px，四个按钮继续排在画面下方一定会被遮住。
+     收成右侧 2×2 工具组，画面和按钮都能同时落在一屏内。 */
+  .tv-tools {
+    grid-column: 2;
+    grid-row: 2;
+    display: block;
+    width: 150px;
+    margin: 0;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+  }
+
+  .tv-tools::before {
+    display: none;
+  }
+
+  .tv-tools .tv-acts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 5px;
+  }
+
+  .tv-tools .tvbtn {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 4px;
+  }
+}
+
+/* 矮横屏的 26px 上下留白对画面高度太奢侈：底部导航只有约 53px，
+   面板边框/圆角也不再需要大留白撑“桌面感”。这里挤压到 6px，
+   把多出来的空间还给设备画面。 */
+@media (min-width: 600px) and (max-width: 899px) and (max-height: 520px) {
+  body {
+    padding: 6px 0;
+  }
+
+  .panel {
+    min-height: calc(100vh - 12px);
+  }
+}

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TVDeck 开机自启 helper：不依赖任何厂商 SDK，纯 AOSP API。
+     配置走 ContentProvider（adb shell content update 写入），开机由 BootReceiver 拉起目标应用。 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.tvdeck.boot"
+    android:versionCode="1"
+    android:versionName="1.0">
+
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33" />
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Android 10+ 起后台启动 Activity 会被 BAL 拦下（BAL_BLOCK），
+         唯一不需要 root、不需要用户点系统的通用豁免就是「悬浮窗」这一条。
+         TVDeck 装机后会用 `appops set <pkg> SYSTEM_ALERT_WINDOW allow` 打开它。 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- Android 11(R) 起有包可见性过滤：不声明 queries 的话，
+         getLaunchIntentForPackage / queryIntentActivities 对别的应用一律返回 null，
+         于是「开机自动打开某个应用」会直接失败（实测返回 no_launchable_activity）。
+         这里按意图过滤声明要"看得见"的应用，覆盖三种启动入口：
+           普通手机/平板 LAUNCHER、电视 LEANBACK_LAUNCHER、桌面 HOME。
+         不用 QUERY_ALL_PACKAGES：上架 Google Play 要额外审批，
+         而这三条 intent 已经覆盖"能被启动的应用"这个全集。 -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:label="ADB 开机自启"
+        android:hasCode="true">
+
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+                <!-- 自测通路：BOOT_COMPLETED 是受保护广播，非 root 发不出来，
+                     于是"立即试跑"在没 root 的设备上没法验证。这条是自定义 action，
+                     不 protected，adb shell 就能发，走的是同一个 onReceive → 同一套启动逻辑，
+                     所以它验证到的就是真开机时那条路径。 -->
+                <action android:name="com.tvdeck.boot.ACTION_SELFTEST" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name=".ConfigProvider"
+            android:authorities="com.tvdeck.boot.config"
+            android:enabled="true"
+            android:exported="true" />
+
+        <!-- 兜底通路：悬浮窗豁免在个别 ROM 上被删掉时，走无障碍服务启动
+             （无障碍服务本身是 BAL 豁免项）。需要用户在系统设置里手动开启，
+             TVDeck 会把开启步骤写清楚，不做静默开启。 -->
+        <service
+            android:name=".BootAccessibilityService"
+            android:exported="true"
+            android:label="TVDeck 开机自启"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/tvdeck_accessibility" />
+        </service>
+    </application>
+</manifest>

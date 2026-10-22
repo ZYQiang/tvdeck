@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e0e11" id="meta-theme" />
+    <title>ADB 设备工作台</title>
+    <script>
+      /* 主题要在样式表之前定下来，否则系统是白天时先闪一帧深色。
+         这里只负责尽早贴 data-theme，切换逻辑和状态回填都在 app.js 里 */
+      try {
+        const p = localStorage.getItem('tvdeck.theme') || 'auto';
+        const sysDark = matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = p === 'light' || p === 'dark' ? p : sysDark ? 'dark' : 'light';
+      } catch {}
+    </script>
+    <!-- 内联图标：省掉一次 favicon.ico 404，也避免为一个小图标多开一个请求 -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e0e11'/%3E%3Crect x='6.5' y='8' width='19' height='13' rx='2.5' fill='none' stroke='%23e8323c' stroke-width='2'/%3E%3Cpath d='M13 24.5h6' stroke='%23e8323c' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/style.css" />
+    <!-- 手机优先的信息密度补丁：窄屏压内容、桌面端补两列，需排在 style.css 之后覆盖 -->
+    <link rel="stylesheet" href="/mobile-density.css" />
+  </head>
+  <body>
+    <div class="panel">
+      <!-- 顶部栏包一层：宽屏时整体固定，切到长列表页也能随时换 tab；窄屏只固定 header -->
+      <div class="p-top" id="ptop">
+        <header class="p-head">
+          <div class="p-id">
+            <span class="p-mark" id="brand">ADB</span>
+            <div class="p-name">
+              <h1 class="p-title" id="device" contenteditable="plaintext-only" spellcheck="false">未连接</h1>
+              <!-- 窄屏把底部状态条挪走之后，连接状态挂在设备名下面这个小圆点上；
+                   宽屏底部那条还在，这个点由 CSS 收起来，两处不会同时出现 -->
+              <p class="p-sub loading" id="psub"><span class="p-dot" id="hdot" role="img" aria-label="正在读取设备状态"></span><span id="model">正在读取设备状态…</span><span class="p-updated" id="pupdated" hidden></span></p>
+            </div>
+          </div>
+          <div class="p-acts">
+            <button id="btn-ops" class="icon-btn" title="操作日志" aria-label="操作日志">≡</button>
+            <button id="btn-details" class="icon-btn" title="设备详情" aria-label="设备详情">•••</button>
+            <button id="btn-power" class="icon-btn power" title="电源 / 唤醒" aria-label="电源">⏻</button>
+            <span class="power-arm-hint" id="powerArmHint" role="status" hidden>再点一次确认</span>
+          </div>
+        </header>
+
+        <!-- 上排只留天天要用的三个面板（总览 / 控制 / 应用）加上第 4 格「更多」，一共 4 格。
+             其余按通用 ADB 工作流分三组收进「更多」抽屉：设备数据 / 连接系统 / 自动化。
+             data-n / data-d 是抽屉磁贴上的名字与说明，磁贴由 app.js 从这几个按钮生成，
+             图标与文案只留一份，不会两边对不上 -->
+        <nav class="tabs" id="tabs">
+          <button data-tab="home" class="tab on" title="设备总览" aria-label="设备总览">
+            <svg viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 8h8M8 12h5"/><circle cx="15.8" cy="16.5" r="1.2"/></svg>
+            <span class="tab-lb">设备</span>
+          </button>
+          <button data-tab="pad" class="tab" title="交互控制" aria-label="交互控制">
+            <svg viewBox="0 0 24 24"><path d="M12 4.5v15M4.5 12h15"/><circle cx="12" cy="12" r="2.6"/></svg>
+            <span class="tab-lb">操作</span>
+          </button>
+          <button data-tab="apps" class="tab" title="应用管理" aria-label="应用管理">
+            <svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+            <span class="tab-lb">应用</span>
+          </button>
+          <button data-tab="picture" class="tab sec" data-n="显示设置" data-d="亮度、护眼与显示参数" title="显示设置" aria-label="显示设置">
+            <svg viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/><circle cx="10" cy="8" r="2.2"/><circle cx="15" cy="16" r="2.2"/></svg>
+            <span class="tab-lb">显示</span>
+          </button>
+          <button data-tab="device" class="tab sec" data-n="设备诊断" data-d="系统信息、进程、文件、健康与日志" title="设备诊断" aria-label="设备诊断">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.8"/><rect x="3" y="13" width="18" height="7" rx="1.8"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>
+            <span class="tab-lb">诊断</span>
+          </button>
+          <button data-tab="usage" class="tab sec" data-n="使用记录" data-d="前台应用时长统计" title="使用记录" aria-label="使用记录">
+            <svg viewBox="0 0 24 24"><path d="M5 19V9M12 19V4.5M19 19v-6"/></svg>
+            <span class="tab-lb">使用</span>
+          </button>
+          <button data-tab="link" class="tab sec" data-n="设备连接" data-d="手动输入 ADB 地址与局域网发现" title="设备连接" aria-label="ADB 设备搜索与连接">
+            <svg viewBox="0 0 24 24"><path d="M9.7 14.3l4.6-4.6"/><path d="M8.2 11.4 6.4 13.2a3.1 3.1 0 0 0 4.4 4.4l1.8-1.8"/><path d="M15.8 12.6l1.8-1.8a3.1 3.1 0 0 0-4.4-4.4l-1.8 1.8"/></svg>
+            <span class="tab-lb">连接</span>
+          </button>
+          <button data-tab="system" class="tab sec" data-n="系统配置" data-d="启动项、默认桌面与开机自启" title="系统配置" aria-label="启动项、默认桌面与开机自启">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M4.5 12H2M22 12h-2.5M6.7 6.7 4.9 4.9M19.1 19.1l-1.8-1.8M17.3 6.7l1.8-1.8M4.9 19.1l1.8-1.8"/></svg>
+            <span class="tab-lb">配置</span>
+          </button>
+          <button data-tab="auto" class="tab sec" data-n="任务自动化" data-d="定时动作与自动执行脚本" title="任务自动化" aria-label="任务自动化">
+            <svg viewBox="0 0 24 24"><path d="M13.4 3.2 5.6 13.4h4.9L10.2 20.8 18.4 10.4h-5.1z"/></svg>
+            <span class="tab-lb">任务</span>
+          </button>
+          <button
+            data-tab="more"
+            class="tab tab-more"
+            id="tab-more"
+            title="更多面板"
+            aria-label="更多面板"
+            aria-haspopup="dialog"
+            aria-expanded="false"
+          >
+            <svg class="dots" viewBox="0 0 24 24"><circle cx="5.4" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.6" cy="12" r="1.7"/></svg>
+            <span class="tab-lb">更多</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="details" id="details" hidden>
+        <div class="drow"><span>型号</span><b id="d-model">—</b></div>
+        <div class="drow"><span>系统</span><b id="d-android">—</b></div>
+        <div class="drow"><span>地址</span><b id="d-addr">—</b></div>
+        <div class="drow"><span>序列号</span><b id="d-serial">—</b></div>
+        <div class="drow"><span>取证目录</span><b id="d-evidence">—</b></div>
+        <div class="drow">
+          <span id="theme-lb">外观</span>
+          <div class="seg seg-sm" id="theme-seg" role="group" aria-labelledby="theme-lb">
+            <button data-theme="auto">跟随系统</button>
+            <button data-theme="light">白天</button>
+            <button data-theme="dark">夜晚</button>
+          </div>
+        </div>
+        <div class="drow actions"><button id="btn-refresh">重新读取设备状态</button><button id="btn-reprobe">重新探测当前设备</button></div>
+      </div>
+
+      <main>
+        <!-- 总览 -->
+        <section class="pane on" data-pane="home">
+          <!-- 首屏是设备工作台：顶部已经显示设备名，这里只补充连接事实和快捷入口。
+               实时屏幕承担主视觉，不重复堆一份大号设备身份。 -->
+          <div class="device-brief" id="device-brief">
+            <div class="db-status">
+              <div class="db-kicker"><i id="db-dot" aria-hidden="true"></i><span id="db-state">正在读取设备</span></div>
+              <p id="db-model">当前 ADB 设备</p>
+            </div>
+            <div class="db-facts" aria-label="ADB 连接信息">
+              <div><span>Android</span><b id="db-android">—</b></div>
+              <div><span>调试标识</span><b id="db-serial" title="">—</b></div>
+              <div><span>ADB 通道</span><b id="db-transport">—</b></div>
+              <div><span>当前应用</span><b id="db-focus" title="">—</b></div>
+            </div>
+            <div class="db-actions" aria-label="设备快捷操作">
+              <button type="button" class="primary" data-jump="pad">操作设备</button>
+              <button type="button" data-jump="apps">管理应用</button>
+              <button type="button" data-jump="device">查看诊断</button>
+              <button type="button" data-jump="link" title="切换或连接其他 ADB 设备">连接设备</button>
+            </div>
+          </div>
+          <div class="home-connect card" id="home-connect" hidden>
+            <div class="hconn-badge" aria-hidden="true">adb</div>
+            <div>
+              <h2>连接 ADB 设备</h2>
+              <p class="caption">所有开放 ADB 调试的设备都可以连接，不限定品牌、系统版本或设备形态。</p>
+            </div>
+            <div class="row hconn-actions">
+              <button id="btn-home-scan" class="primary grow">扫描局域网</button>
+              <button id="btn-home-manual" class="grow">手动输入 IP 端口</button>
+              <button id="btn-home-reconnect" class="link" hidden>重连上次设备</button>
+            </div>
+            <div class="hconn-steps" aria-label="连接步骤">
+              <span><b>1</b> 设备开启无线调试</span>
+              <span><b>2</b> 保持同一局域网</span>
+              <span><b>3</b> 在设备上点允许</span>
+            </div>
+          </div>
+          <div class="hcol hcol-a">
+            <div class="tv">
+              <div class="tv-heading">
+                <div>
+                  <p class="tv-kicker">实时设备屏幕</p>
+                  <p class="tv-source" id="tvSource">等待 ADB 设备</p>
+                </div>
+                <button class="reconnect" id="btn-shot" title="把当前设备画面存成 PNG，下载到正在浏览这个页面的设备">截图</button>
+              </div>
+              <div class="tv-frame">
+                <div class="tv-screen">
+                  <!-- 双缓冲：新一帧先加载到 shotB，加载完再翻上来，画面中间不留黑 -->
+                  <img id="shot" class="tv-shot on" alt="" draggable="false" />
+                  <img id="shotB" class="tv-shot" alt="" aria-hidden="true" draggable="false" />
+                  <div class="tv-idle" id="tvIdle">
+                    <span class="tv-logo" id="tvBrand">ADB</span>
+                    <p id="tvState">读取中…</p>
+                    <p class="tv-sub" id="tvSub" hidden></p>
+                    <div class="tv-idle-actions">
+                      <button class="tv-cta" id="btn-goto-link" type="button" hidden>连接 ADB 设备</button>
+                      <button class="tv-secondary" id="btn-reconnect" type="button" hidden>重连上次设备</button>
+                    </div>
+                  </div>
+                  <p class="fs-hint" id="fshint" hidden>
+                    <span class="fs-note" id="fsnote" hidden></span>
+                    <span class="fs-meta" id="fsmeta" hidden></span>
+                    <span class="fs-sub" id="fshow">点画面＝触控设备，按住拖＝滑动</span>
+                    <span class="fs-tail">Esc 退出 · <a class="fs-hint-go" href="/screen" target="_blank" rel="noopener">新标签打开纯画面</a></span>
+                    <span class="fspeak" id="fspeak" aria-live="polite"></span>
+                  </p>
+                </div>
+              </div>
+              <!-- 普通视图把画面操作放在屏幕下方，不再压住内容；进入全屏时由 app.js
+                   把同一组按钮移回画面内，保证黑屏里仍有可见的退出入口 -->
+              <div class="tv-tools" id="tvtools">
+                <span class="tv-acts show" id="tvacts" role="group" aria-label="画面操作">
+                  <button id="btn-fit" class="tvbtn sq" title="按比例完整显示（可能有黑边），点击改为铺满" aria-label="画面比例" aria-pressed="false"><span class="tvbtn-ic" aria-hidden="true">▢</span><span class="tvbtn-lb">完整</span></button>
+                  <button id="btn-preview" class="tvbtn sq" title="预览设备屏幕" aria-label="预览设备屏幕" aria-pressed="false"><span class="tvbtn-ic" aria-hidden="true">◉</span><span class="tvbtn-lb">预览</span></button>
+                  <button id="btn-fs" class="tvbtn sq" title="全屏画面" aria-label="全屏画面" aria-pressed="false"><span class="tvbtn-ic" aria-hidden="true">⤢</span><span class="tvbtn-lb">全屏</span></button>
+                  <button id="btn-touch" class="tvbtn sq" title="鼠标点击画面直接点按设备" aria-label="鼠标点击画面直接点按设备" aria-pressed="true">
+                    <span class="tvbtn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.4 14 15.8l-3.2 2.1-1.9-3.3-4.1 2.5z" fill="currentColor"/></svg></span>
+                    <span class="tvbtn-lb">点按</span>
+                  </button>
+                </span>
+              </div>
+            </div>
+            <p class="eyebrow">
+              <i class="pip"></i>当前应用
+            </p>
+            <p class="now" id="focus">—</p>
+          </div>
+
+          <div class="hcol hcol-b">
+            <div class="card">
+              <div class="card-top">
+                <span class="card-t">音量</span>
+                <b class="bignum" id="volnum">—</b>
+              </div>
+              <div class="volslide">
+                <span class="v-ico"><svg viewBox="0 0 24 24"><path d="M5 9.5h3L12 6v12L8 14.5H5z"/><path d="M15.5 10.6a3 3 0 0 1 0 2.8"/></svg></span>
+                <input id="vol" type="range" min="0" max="100" step="1" aria-label="音量" disabled />
+                <span class="v-ico"><svg viewBox="0 0 24 24"><path d="M5 9.5h3L12 6v12L8 14.5H5z"/><path d="M15.5 9.4a5 5 0 0 1 0 5.2"/><path d="M18.2 7a8.6 8.6 0 0 1 0 10"/></svg></span>
+              </div>
+              <div class="card-bot">
+                <span class="muted" id="volinfo">设备音频输出</span>
+                <span class="rounds">
+                  <button data-key="volDown" class="round" aria-label="音量减" disabled>−</button>
+                  <button data-key="volUp" class="round" aria-label="音量加" disabled>＋</button>
+                </span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-top">
+                <span class="card-t">设备状态</span>
+                <button class="link" data-jump="device" data-seg="health" aria-label="查看健康详情">查看详情</button>
+              </div>
+              <div id="homesnap"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-top">
+                <span class="card-t">常用应用</span>
+                <button class="link" data-jump="apps">全部 <span id="appcount"></span></button>
+              </div>
+              <div class="fav" id="favlist"></div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- 设备控制 -->
+        <section class="pane" data-pane="pad">
+          <div class="control-intro">
+            <div>
+              <p class="control-kicker">ADB 交互控制</p>
+              <h2>直接操作当前设备</h2>
+            </div>
+            <p>触控、手势与键盘输入；设备按键按实测能力显示。</p>
+          </div>
+          <div class="pad-main">
+            <div class="pad-col pad-col-touch">
+              <div class="touchpad-card card">
+                <div class="card-top">
+                  <span class="card-t">触控板</span>
+                  <b class="muted" id="touchpad-size">读取中…</b>
+                </div>
+                <div class="touchpad" id="touchpad">
+                  <div class="tp-cursor" id="tpCursor"></div>
+                  <div class="tp-trace" id="tpTrace" hidden>
+                    <b class="tp-line" id="tpLine"></b>
+                    <i class="tp-origin" id="tpOrigin"></i>
+                    <i class="tp-head" id="tpHead"></i>
+                  </div>
+                </div>
+                <div class="tp-aux" id="tp-aux" role="group" aria-label="鼠标按键"></div>
+                <p class="caption" id="tp-cap"></p>
+                <div class="pad-keys tp-keys">
+                  <button data-key="back" class="capability-key" aria-label="返回键">返回</button>
+                  <button data-key="home" class="capability-key" aria-label="主页键">主页</button>
+                  <button data-key="menu" class="capability-key" aria-label="菜单键">菜单</button>
+                  <button data-key="apps" class="capability-key" aria-label="最近应用键">应用</button>
+                  <button data-key="info" class="capability-key" aria-label="信息键">信息</button>
+                  <button data-key="mic" class="capability-key" aria-label="语音键">语音</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pad-col pad-col-input">
+              <div class="card">
+                <div class="card-top">
+                  <span class="card-t">键盘输入</span>
+                  <b class="muted" id="textvia">读取中…</b>
+                </div>
+                <div class="row">
+                  <input
+                    id="textin"
+                    class="grow"
+                    type="text"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    placeholder="先点设备上的输入框，再打字"
+                    aria-label="要发到设备的文字"
+                  />
+                  <button id="btn-text-send">发送</button>
+                </div>
+                <div class="row">
+                  <button id="btn-text-enter" class="grow">回车</button>
+                  <button id="btn-text-del" class="grow">退格</button>
+                  <button id="btn-text-clear" class="grow">全删</button>
+                </div>
+                <p class="caption" id="textnote"></p>
+              </div>
+
+              <div class="card">
+                <div class="card-top">
+                  <span class="card-t">快捷手势</span>
+                  <b class="muted" id="gesturenote">按设备分辨率发送</b>
+                </div>
+                <div class="gest" id="gestgrid">
+                  <button data-gesture="up" title="从下往上滑（列表下翻 / 返回顶部）">↑ 上滑</button>
+                  <button data-gesture="down" title="从上往下滑（列表上翻 / 拉出通知）">↓ 下滑</button>
+                  <button data-gesture="left" title="从右往左滑（横滑下一屏）">← 左滑</button>
+                  <button data-gesture="right" title="从左往右滑（横滑上一屏）">→ 右滑</button>
+                  <button data-gesture="double" title="同一位置快速点两下">◉◉ 双击</button>
+                  <button data-gesture="hold" title="在画面正中按住 1.2 秒（多数界面等于长按 OK）">◉ 长按</button>
+                </div>
+                <p class="caption" id="gesturecap"></p>
+              </div>
+            </div>
+
+            <details class="pad-col pad-col-nav key-console capability-keys" data-keys="up down left right ok prev playPause stop next back home menu apps info mic mute power volUp volDown" data-match="any">
+              <summary>
+                <span>
+                  <b>设备按键</b>
+                  <small>方向、媒体与系统功能键</small>
+                </span>
+                <span class="kc-count" id="keycount"></span>
+              </summary>
+              <p class="pathline" id="inputpath"><b>按键通道</b><span>读取中…</span></p>
+              <div class="dpad capability-keys" data-keys="up down left right ok" data-match="all" role="group" aria-label="方向键">
+                <button data-key="up" class="k up capability-key" aria-label="上">▲</button>
+                <button data-key="left" class="k left capability-key" aria-label="左">◀</button>
+                <button data-key="ok" class="k ok capability-key">OK</button>
+                <button data-key="right" class="k right capability-key" aria-label="右">▶</button>
+                <button data-key="down" class="k down capability-key" aria-label="下">▼</button>
+              </div>
+              <div class="row media capability-keys" data-keys="prev playPause stop next" data-match="any" role="group" aria-label="媒体键">
+                <button data-key="prev" class="capability-key" aria-label="上一个">⏮</button>
+                <button data-key="playPause" class="capability-key" aria-label="播放暂停">⏯</button>
+                <button data-key="stop" class="capability-key" aria-label="停止">⏹</button>
+                <button data-key="next" class="capability-key" aria-label="下一个">⏭</button>
+              </div>
+              <div class="row">
+                <button data-key="mute" class="grow" aria-label="静音键">静音</button>
+                <button id="btn-sleep" class="grow" aria-label="电源" title="发送电源键；部分设备会休眠并断开无线调试">电源</button>
+                <button id="btn-wake" class="grow" aria-label="唤醒" title="等设备网络回来后发唤醒键 767，最长 25 秒">唤醒</button>
+              </div>
+              <div class="pad-keys">
+                <button data-key="back" class="capability-key" aria-label="返回键">返回</button>
+                <button data-key="home" class="capability-key" aria-label="主页键">主页</button>
+                <button data-key="menu" class="capability-key" aria-label="菜单键">菜单</button>
+                <button data-key="apps" class="capability-key" aria-label="最近应用键">应用</button>
+                <button data-key="info" class="capability-key" aria-label="信息键">信息</button>
+                <button data-key="mic" class="capability-key" aria-label="语音键">语音</button>
+              </div>
+              <div class="pad-notes">
+                <details class="inote">
+                  <summary>电源 · 键盘快捷键</summary>
+                  <p class="caption" title="电源键可能让无线调试断开，需要用机身按键或物理操作唤醒，醒来后再点「唤醒」">部分设备休眠后需物理唤醒</p>
+                  <p class="kbdhint" title="键盘也能控制设备：方向键移动，回车确定，Esc 返回，空格播放/暂停"><span class="kbdhint-t"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> <kbd>Enter</kbd> <kbd>Esc</kbd> <kbd>空格</kbd></span></p>
+                </details>
+              </div>
+            </details>
+          </div>
+
+          <div class="pad-side">
+            <div class="card control-help">
+              <div class="card-top"><span class="card-t">操作提示</span></div>
+              <ul>
+                <li>在实时设备屏幕上单击＝点按，按住拖动＝滑动。</li>
+                <li>文字输入前，先点设备上的输入框。</li>
+                <li>设备不支持的能力会自动隐藏，不会留下无效按钮。</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 应用 -->
+        <section class="pane" data-pane="apps">
+          <div class="seg" id="apps-seg" role="tablist">
+            <button class="on" data-seg="launch">启动</button>
+            <button data-seg="manage">安装与管理</button>
+          </div>
+
+          <div class="subpane on" data-sub="launch">
+            <h2>应用 <span class="muted" id="appcount2"></span></h2>
+            <div class="grid" id="applist"></div>
+            <div class="row" style="margin-top: 10px">
+              <button id="btn-apps-more" class="grow" hidden>展开全部</button>
+            </div>
+          </div>
+
+          <div class="subpane" data-sub="manage">
+            <h3>安装 APK</h3>
+            <div class="row">
+              <label class="pickbtn" id="apkpick">
+                <input id="apkfile" type="file" accept=".apk" hidden />选择 APK 文件
+              </label>
+              <button id="btn-apk-cancel" hidden>取消</button>
+            </div>
+            <p class="caption" id="apkstate"></p>
+            <div id="apkbox"></div>
+
+            <h3>已安装应用 <span class="muted" id="invcount"></span></h3>
+            <p class="caption" id="invnote"></p>
+            <div class="row">
+              <input id="invq" type="search" class="grow" placeholder="按名称或包名筛选" aria-label="筛选应用" />
+              <button id="btn-inv">读取清单</button>
+            </div>
+            <div class="seg seg-sm" id="invfilter" role="group" aria-label="应用筛选">
+              <button class="on" data-inv="main">常用</button>
+              <button data-inv="third">自己装的</button>
+              <button data-inv="sys">预装</button>
+              <button data-inv="run">运行中</button>
+              <button data-inv="all">全部</button>
+            </div>
+            <div class="list tall" id="invlist"></div>
+          </div>
+        </section>
+
+        <!-- 屏幕时间 -->
+        <section class="pane" data-pane="usage">
+          <h2>屏幕使用时间</h2>
+          <div class="row">
+            <select id="hours">
+              <option value="6">6 小时</option>
+              <option value="24" selected>24 小时</option>
+              <option value="168">7 天</option>
+            </select>
+            <button id="btn-usage">重新统计</button>
+          </div>
+          <div class="card" id="usagestat" hidden>
+            <div class="statrow">
+              <div class="stat">
+                <span class="stat-k">总使用</span>
+                <b class="stat-v" id="usage-total">—</b>
+              </div>
+              <div class="stat">
+                <span class="stat-k">最常用</span>
+                <b class="stat-v" id="usage-top">—</b>
+              </div>
+              <div class="stat">
+                <span class="stat-k">应用数</span>
+                <b class="stat-v" id="usage-count">—</b>
+              </div>
+            </div>
+          </div>
+          <div class="card" id="usagecard">
+            <div id="usage"></div>
+            <div class="usage-hourly" id="usage-hourly" hidden>
+              <p class="card-t">按小时分布</p>
+              <div id="usage-hbars"></div>
+            </div>
+            <p class="caption" id="usagesrc"></p>
+          </div>
+        </section>
+
+        <!-- 画面 -->
+        <section class="pane" data-pane="picture">
+          <h2>显示设置</h2>
+          <div class="card">
+            <div class="row">
+              <label class="slider">亮度 <input id="bright" type="range" min="0" max="255" disabled /></label>
+              <span class="value" id="brightv"></span>
+            </div>
+            <div class="row">
+              <button id="btn-night-on">护眼开</button>
+              <button id="btn-night-off">护眼关</button>
+              <label class="slider">强度 <input id="nightlvl" type="range" min="1" max="12" value="12" /></label>
+              <button id="btn-night-apply">调遮罩</button>
+            </div>
+            <p class="caption" id="nightstate"></p>
+            <p class="caption" id="pqinfo"></p>
+          </div>
+          <div class="card">
+            <div id="picture" class="pic"></div>
+          </div>
+        </section>
+
+        <!-- 设备：信息 / 进程 / 文件 -->
+        <section class="pane" data-pane="device">
+          <div class="seg" id="dev-seg" role="tablist">
+            <button class="on" data-seg="info">信息</button>
+            <button data-seg="proc">进程</button>
+            <button data-seg="file">文件</button>
+            <button data-seg="health">健康</button>
+            <button data-seg="record">录屏</button>
+            <button data-seg="log">日志</button>
+          </div>
+
+          <div class="subpane on" data-sub="info">
+            <h2>设备信息</h2>
+            <p class="caption" id="devstamp"></p>
+            <div class="list tall" id="devlist">
+              <p class="caption">读取中…</p>
+            </div>
+            <details class="fold devtech" id="devtech" hidden>
+              <summary>技术详情</summary>
+              <div class="list" id="devtechlist"></div>
+            </details>
+
+            <h3 title="电源动作：设备断开后会自动回连">电源</h3>
+            <div class="powerrow" id="powerrow">
+              <button class="chip" type="button" data-power="reboot">重启</button>
+              <button class="chip" type="button" data-power="recovery" title="重启进恢复模式（Recovery）">恢复模式</button>
+              <button class="chip" type="button" data-power="bootloader" title="重启进引导模式（Bootloader）">引导模式</button>
+              <button class="chip danger" type="button" data-power="shutdown">关机</button>
+            </div>
+          </div>
+
+          <div class="subpane" data-sub="proc">
+            <h2>进程 <span class="muted" id="proccount"></span></h2>
+            <div class="row">
+              <input id="procq" type="search" class="grow" placeholder="筛选进程名" aria-label="筛选进程" />
+              <label class="toptoggle" title="只看非系统进程"><input id="proc-app-only" type="checkbox" checked />只看应用</label>
+              <button id="btn-proc-refresh">重新读取</button>
+            </div>
+            <div class="list tall" id="proclist"></div>
+          </div>
+
+          <div class="subpane" data-sub="file">
+            <h2>文件管理</h2>
+            <div class="row fsnav">
+              <button id="btn-fs-up" title="上一级" aria-label="上一级">↑</button>
+              <select id="fsroot" aria-label="根目录">
+                <option value="/storage/emulated/0">内部存储</option>
+                <option value="/data/local/tmp">/data/local/tmp</option>
+                <option value="/sdcard/Download">下载目录</option>
+                <option value="/system/app">系统应用</option>
+              </select>
+              <button id="btn-fs-refresh">刷新</button>
+            </div>
+            <p class="pathline" id="fspathead"><b>当前目录</b><span>/storage/emulated/0</span></p>
+            <div class="list tall" id="fslist"></div>
+            <div class="row" style="margin-top: 10px">
+              <label class="pickbtn">
+                <input id="pushfile" type="file" hidden />推送文件到此目录
+              </label>
+            </div>
+            <p class="caption" id="fsdirnote"></p>
+          </div>
+
+          <div class="subpane" data-sub="health">
+            <h2>设备健康 <span class="muted" id="healthsum"></span></h2>
+            <div class="row">
+              <button id="btn-health">重新读取</button>
+            </div>
+            <p class="caption" id="healthmeta" hidden></p>
+            <div class="sparkgrid" id="sparkgrid" hidden></div>
+            <p class="caption" id="sparkmeta" hidden></p>
+            <div class="hgrid" id="healthgrid">
+              <p class="caption">读取中…</p>
+            </div>
+            <div class="hfoot statrow" id="healthfoot" hidden></div>
+            <details class="inote">
+              <summary id="healthnote">数据来自设备系统</summary>
+            </details>
+          </div>
+
+          <div class="subpane" data-sub="record">
+            <h2>屏幕录制 <span class="muted" id="recstate"></span></h2>
+            <div class="recctl">
+              <label for="reclen">
+                时长
+                <select id="reclen">
+                  <option value="5">5 秒</option>
+                  <option value="10" selected>10 秒</option>
+                  <option value="15">15 秒</option>
+                  <option value="30">30 秒</option>
+                </select>
+              </label>
+              <label for="recqual">
+                高度
+                <select id="recqual">
+                  <option value="" selected>设备原生</option>
+                  <option value="1080">1080p</option>
+                  <option value="720">720p</option>
+                </select>
+              </label>
+              <button id="btn-rec">开始录制</button>
+              <button id="btn-snap">存设备画面</button>
+            </div>
+            <details class="inote">
+              <summary id="recnote">录屏在设备端进行，完成后自动拉回</summary>
+            </details>
+            <!-- 录制是后台任务：进度条读的是服务端 job 的阶段与百分比，
+                 不是页面自己数的秒。刷新页面或切走再回来，这条还能接着显示 -->
+            <div class="recprog" id="recprog" hidden>
+              <div class="recbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="recbar">
+                <i id="recbarfill"></i>
+              </div>
+              <span class="recproglabel" id="recproglabel"></span>
+            </div>
+            <div class="row rectools">
+              <label class="checkline" id="recall" hidden>
+                <input type="checkbox" id="recallbox" aria-label="全选录像" />全选
+              </label>
+              <span class="muted grow" id="recmem"></span>
+              <button id="btn-rec-del-sel" class="danger" type="button" hidden>删除所选</button>
+              <button id="btn-rec-clear" class="danger" type="button" hidden>清空全部</button>
+            </div>
+            <div class="list tall" id="reclist"></div>
+          </div>
+
+          <div class="subpane" data-sub="log">
+            <h2>设备日志 <span class="muted" id="logsum"></span></h2>
+            <div class="recctl logctl">
+              <label for="loglines">
+                行数
+                <select id="loglines">
+                  <option value="200">200 行</option>
+                  <option value="400" selected>400 行</option>
+                  <option value="800">800 行</option>
+                  <option value="1500">1500 行</option>
+                </select>
+              </label>
+              <label for="loglevel">
+                等级
+                <select id="loglevel">
+                  <option value="" selected>全部</option>
+                  <option value="V">V 及以上</option>
+                  <option value="D">D 及以上</option>
+                  <option value="I">I 及以上</option>
+                  <option value="W">W 及以上</option>
+                  <option value="E">E 及以上（只看错误）</option>
+                </select>
+              </label>
+              <label class="checkline" for="logapp">
+                <input type="checkbox" id="logapp" />只看当前前台应用
+              </label>
+              <button id="btn-log">读取日志</button>
+            </div>
+            <div class="row logbar">
+              <input id="logq" type="search" class="grow" placeholder="关键字（空格多词）或 #进程号" aria-label="筛选日志" />
+              <button id="btn-log-clear" class="danger" type="button">清空缓冲区</button>
+            </div>
+            <!-- 这一排全是「浏览器侧」的动作：只看崩溃、复制、导出都只在已经读回来的这批行上做，
+                 不再去敲设备；自动刷新是唯一会周期性回设备的，所以单独放在最右边 -->
+            <div class="row logtools">
+              <label class="checkline" for="logcrash">
+                <input type="checkbox" id="logcrash" />只看崩溃
+                <b class="logcrashn" id="logcrashn" hidden></b>
+              </label>
+              <label class="checkline" for="logmark">
+                <input type="checkbox" id="logmark" />只看收藏
+                <b class="logmarkn" id="logmarkn" hidden></b>
+              </label>
+              <label class="checkline" for="lognew">
+                <input type="checkbox" id="lognew" disabled />只看新增
+                <b class="lognewn" id="lognewn" hidden></b>
+              </label>
+              <label class="checkline" for="logfollow">
+                <input type="checkbox" id="logfollow" />自动刷新
+              </label>
+              <button id="btn-log-copy" type="button">复制</button>
+              <button id="btn-log-export" type="button">导出 .txt</button>
+              <button id="btn-log-report" type="button">导出报告 .md</button>
+            </div>
+            <!-- 这批日志的等级构成：一段就是一个等级，段宽按条数占比，点一段＝只看这一级。
+                 算的是刚读回来的整批，不跟着筛选走 —— 它要回答的正是「这批里到底有没有 Error」，
+                 只算筛完的视图会把这个问题答丢。读不到时整条不出现（见 renderLogDist） -->
+            <div class="logdist" id="logdist" hidden>
+              <div class="logdistbar" id="logdistbar" role="group" aria-label="这批日志的等级构成，点一段只看这一级"></div>
+            </div>
+            <div class="list tall loglist" id="loglist"></div>
+            <details class="inote">
+              <summary id="lognote">筛选：多词命中 · 标签 · <code>#1234</code></summary>
+            </details>
+          </div>
+        </section>
+
+        <!-- 连接 -->
+        <section class="pane" data-pane="system">
+          <div class="seg" id="sys-seg">
+            <button class="on" data-seg="home">默认桌面</button>
+            <button data-seg="startup">启动项</button>
+            <button data-seg="boot">开机自启</button>
+          </div>
+
+          <!-- 离线统一入口：三个子段下面各自还有空态，但都收在一条说明里，
+               避免同一屏出现三四句「需要先连接设备」 -->
+          <div class="sysoff" id="sysoff" hidden>
+            <b>设备未连接</b>
+            <p>连接后可读取默认桌面、启动项和开机自启。</p>
+            <button id="btn-sys-go-link" type="button">连接设备</button>
+          </div>
+
+          <!-- 能力横幅：当前设备走哪条通路、缺什么，一眼看到。
+               不猜厂商 —— 全部来自后端对 adb 能力的实测探测 -->
+          <div class="caps" id="syscaps" hidden>
+            <div class="caps-head">
+              <b>当前设备</b>
+              <span class="muted" id="capsdev"></span>
+              <span class="gap"></span>
+              <button id="btn-caps-refresh" class="icon-btn" title="重新探测（换设备/切 root 后用）" aria-label="重新探测">↻</button>
+            </div>
+            <div class="caps-list" id="capslist"></div>
+          </div>
+
+          <div class="subpane on" data-sub="home">
+            <h2>默认桌面</h2>
+            <div class="row">
+              <button id="btn-home-refresh" class="grow">读取桌面候选</button>
+              <button id="btn-home-restore" title="还原到改动前的桌面">还原原桌面</button>
+            </div>
+            <p class="caption" id="homenote">尚未读取。</p>
+            <div class="list" id="homelist"></div>
+          </div>
+
+          <div class="subpane" data-sub="startup">
+            <h2>开机自启应用 <span class="muted" id="startupcount"></span></h2>
+            <div class="row">
+              <input id="startupq" type="search" class="grow" placeholder="按名称或包名筛选" aria-label="筛选启动项" />
+              <button id="btn-startup">读取启动项</button>
+            </div>
+            <p class="caption" id="startupnote">尚未读取。</p>
+            <div class="list tall" id="startuplist"></div>
+          </div>
+
+          <div class="subpane" data-sub="boot">
+            <h2>开机自动打开应用</h2>
+            <p class="caption" id="bootnote">读取中…</p>
+            <div class="list" id="bootlist"></div>
+            <div class="row">
+              <select id="boottarget" class="grow" aria-label="开机要打开的应用"></select>
+              <button id="btn-boot-install" hidden>安装组件</button>
+            </div>
+            <div class="row">
+              <label class="slider">延迟 <input id="bootdelay" type="range" min="0" max="60" step="1" value="8" /></label>
+              <span class="value" id="bootdelayv">8s</span>
+            </div>
+            <div class="row">
+              <button id="btn-boot-on" class="grow">开启开机自启</button>
+              <button id="btn-boot-off">关闭</button>
+            </div>
+            <div class="row">
+              <button id="btn-boot-try" class="grow">立即试跑一次</button>
+            </div>
+            <p class="caption" id="bootresult"></p>
+            <details class="inote">
+              <summary>为什么要无障碍服务</summary>
+              <p class="caption">新系统拦后台启动，借无障碍服务豁免，不读屏。</p>
+            </details>
+          </div>
+        </section>
+
+        <!-- 自动化脚本：把页面上的动作串成一条可复用、可定时的序列 -->
+        <section class="pane" data-pane="auto">
+          <h2>自动化脚本 <span class="muted" id="autocount"></span></h2>
+
+          <div class="seg" id="auto-seg" role="tablist">
+            <button class="on" data-seg="list">脚本</button>
+            <button data-seg="edit">编辑</button>
+            <button data-seg="hist">运行记录</button>
+          </div>
+
+          <div class="subpane on" data-sub="list">
+            <div class="card" id="auto-engine-card">
+              <div class="card-top">
+                <span class="card-t">自动触发</span>
+                <b class="muted" id="autoeng">读取中…</b>
+              </div>
+              <div class="row">
+                <button id="btn-auto-refresh" class="grow">重新读取</button>
+                <button id="btn-auto-add">写一条脚本</button>
+              </div>
+              <div class="row" id="auto-engine-row" hidden>
+                <button id="btn-auto-engine" class="chip on" type="button">暂停自动触发</button>
+              </div>
+              <p class="caption" id="autopath"></p>
+            </div>
+            <!-- 媒体库：脚本里「播放图片 / 视频」那一步的素材来源。
+                 放在脚本列表这一屏而不是编辑屏，是因为素材是「攒一次、多条脚本共用」的东西 -->
+            <div class="card" id="media-card" hidden>
+              <div class="card-top">
+                <span class="card-t">媒体库</span>
+                <b class="muted" id="mediameta">读取中…</b>
+              </div>
+              <div class="row">
+                <label class="pickbtn" id="mediapick">
+                  <input id="mediafile" type="file" accept="image/*,video/*,audio/*" multiple hidden />
+                  上传图片 / 视频
+                </label>
+                <button id="btn-media-refresh" class="grow">重新读取</button>
+              </div>
+              <details class="inote">
+                <summary>素材怎么用</summary>
+                <p class="caption" title="播放在脚本的播放步骤里从素材库选择，也可以直接填网址，由设备自行拉取">素材库或网址</p>
+              </details>
+              <div class="list" id="medialist">
+                <p class="caption">读取中…</p>
+              </div>
+            </div>
+            <div class="list tall" id="autolist">
+              <p class="caption">读取中…</p>
+            </div>
+          </div>
+
+          <div class="subpane" data-sub="edit">
+            <div class="card">
+              <div class="card-top">
+                <span class="card-t" id="autoedit-title">新建脚本</span>
+                <b class="muted" id="autoedit-state">还没保存</b>
+              </div>
+              <div class="row">
+                <input
+                  id="autoname"
+                  class="grow"
+                  maxlength="40"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="脚本名，例如 每日重启"
+                  aria-label="脚本名称"
+                />
+              </div>
+
+              <div class="afield">
+                <span class="eyebrow" id="autotrig-lb">触发方式</span>
+                <div class="seg" id="autotrig" role="group" aria-labelledby="autotrig-lb">
+                  <button data-trig="manual">手动</button>
+                  <button data-trig="daily">每天定点</button>
+                  <button data-trig="connect">设备上线</button>
+                </div>
+              </div>
+              <div class="row" id="autodailyrow" hidden>
+                <input id="autoat" type="time" value="08:00" aria-label="每天执行时间" />
+                <span class="caption grow">每天到这个点跑一次；不在线就跳过。</span>
+              </div>
+              <div class="row" id="autoconnrow" hidden>
+                <label class="slider">上线后等 <input id="autodelay" type="range" min="0" max="120" step="5" value="10" /></label>
+                <span class="value" id="autodelayv">10s</span>
+              </div>
+
+              <div class="afield">
+                <span class="eyebrow">步骤 <i class="muted" id="autostepcount"></i></span>
+                <div class="list" id="autosteps"></div>
+                <div class="row" id="autoaddrow">
+                  <select id="autoadd" class="grow" aria-label="要添加的动作"></select>
+                  <button id="btn-auto-step-add">添加一步</button>
+                </div>
+              </div>
+
+              <div class="row" id="autoeditsave">
+                <button id="btn-auto-save" class="grow">保存脚本</button>
+                <button id="btn-auto-run">立即运行</button>
+                <button id="btn-auto-del" class="danger">删除</button>
+              </div>
+              <p class="caption" id="autoedit-note"></p>
+            </div>
+
+            <!-- 试跑/运行的逐步结果：跑完留在这一屏，不用切回列表看 -->
+            <div class="runs" id="autorun" hidden></div>
+
+            <datalist id="autolaunchlist"></datalist>
+            <datalist id="automediaurl"></datalist>
+          </div>
+
+          <div class="subpane" data-sub="hist">
+            <div class="row">
+              <button id="btn-hist-clear" class="danger">清空运行记录</button>
+            </div>
+            <div class="list tall" id="autohist">
+            <p class="caption">暂无运行记录。</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 连接 -->
+        <section class="pane" data-pane="link">
+          <h2>当前连接</h2>
+          <div class="list" id="curconn">
+            <p class="caption">读取中…</p>
+          </div>
+
+          <h2>连接方式</h2>
+          <div class="row connect-acts">
+            <button id="btn-scan" class="grow">扫描 ADB 设备</button>
+            <button id="btn-manual" class="grow" aria-expanded="false">手动输入地址</button>
+          </div>
+
+          <details class="fold link-manual" id="link-manual">
+            <summary>ADB 地址与端口</summary>
+            <div class="row">
+              <input id="linkip" class="grow" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="例如 192.168.1.6:5555" aria-label="ADB 设备 IP 或完整地址" />
+              <input id="linkport" class="port" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5555" value="5555" aria-label="调试端口" />
+              <button id="btn-link" aria-label="连接设备">连接</button>
+            </div>
+            <p class="caption" title="首次连接时在设备上打开 设置 → 开发者选项 → 网络 ADB 调试，并在设备上点允许。端口可粘 192.168.1.6:5555 这种完整地址">需先开启网络 ADB 授权</p>
+          </details>
+
+          <div class="link-main">
+            <p class="scan-state" id="scanstate" aria-live="polite" hidden></p>
+            <div class="list tall" id="scanlist" aria-live="polite">
+              <p class="caption">尚未扫描。</p>
+            </div>
+            <div class="scan-foot">
+              <p class="caption" id="scanmeta" aria-live="polite"></p>
+              <button id="btn-scan-full" class="link" type="button" title="完整扫描局域网，查找开放无线 ADB 调试的设备">整网段查找 ADB</button>
+            </div>
+          </div>
+
+          <details class="fold srv-advanced" id="srv-advanced">
+            <summary title="页面与服务端不在同一地址时才需要填写；留空即用当前页面所在的服务端">高级设置 · 服务器地址</summary>
+            <div class="card">
+              <div class="card-top">
+                <span class="card-t">服务端地址</span>
+                <b class="muted" id="srvnow">同源（当前服务端）</b>
+              </div>
+              <div class="row">
+                <input id="srvurl" class="grow" inputmode="url" autocomplete="off" spellcheck="false" placeholder="留空即同源，例如 http://192.168.1.6:8787" aria-label="服务器地址" />
+              </div>
+              <div class="row">
+                <button id="btn-srv-save" class="grow">保存并重载</button>
+                <button id="btn-srv-reset">恢复默认</button>
+              </div>
+            </div>
+          </details>
+        </section>
+      </main>
+
+      <footer class="p-foot">
+        <span class="st" id="dot">离线</span>
+        <span class="fmodel" id="serial"></span>
+      </footer>
+    </div>
+
+    <div class="sheet" id="opsheet" hidden>
+      <div class="sheet-head">
+        <b>操作日志</b>
+        <span class="muted" id="opcount"></span>
+        <span class="gap"></span>
+        <button id="btn-op-clear">清空</button>
+        <button id="btn-op-close" class="icon-btn" title="关闭" aria-label="关闭">✕</button>
+      </div>
+      <div class="sheet-body" id="oplist"></div>
+    </div>
+
+    <!-- 「更多」抽屉：上排放不下的那几个面板，按显示 / 设备 / 系统分组摊成磁贴，点一格切页并收起。
+         磁贴是 app.js 按 data-tab 现生成的（图标与文案跟着上排那批按钮走）。
+         用磁贴不用长列表：六个面板排成两行就能扫完，一行一个要滚一屏才看得到最后一个 -->
+    <div class="sheet" id="moresheet" role="dialog" aria-modal="true" aria-label="更多面板" hidden>
+      <div class="sheet-head">
+        <b>更多面板</b>
+        <span class="gap"></span>
+        <button id="btn-more-close" class="icon-btn" title="关闭" aria-label="关闭">✕</button>
+      </div>
+      <div class="sheet-body" id="morelist"></div>
+    </div>
+
+    <div id="log" role="status" aria-live="polite"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

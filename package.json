@@ -1,0 +1,15 @@
+{
+  "name": "tvdeck",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "discover": "node src/cli.ts discover",
+    "probe": "node src/cli.ts probe",
+    "start": "node src/server.ts",
+    "mirror": "node src/cli.ts mirror-check",
+    "icons": "node scripts/extract-icons.mjs"
+  }
+}
